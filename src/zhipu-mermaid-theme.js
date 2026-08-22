@@ -388,6 +388,12 @@ function measureTimelineText(text, fontSize = 16, fontWeight = 400) {
 }
 
 function wrapTimelineText(text, maxWidth, fontSize = 16, fontWeight = 400) {
+  const forcedLines = String(text).split(/<br\s*\/?>/gi);
+  if (forcedLines.length > 1) {
+    return forcedLines.flatMap((line) => (
+      line ? wrapTimelineText(line, maxWidth, fontSize, fontWeight) : [""]
+    ));
+  }
   if (!text || measureTimelineText(text, fontSize, fontWeight) <= maxWidth) return [text];
   const tokens = text.match(/\s+|[\u2E80-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF]|[^\s\u2E80-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF]+/g) || [];
   const lines = [];
