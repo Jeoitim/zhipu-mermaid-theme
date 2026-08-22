@@ -157,7 +157,7 @@ export const zhipuMermaidConfig = {
     nodeSpacing: 45,
     rankSpacing: 55,
     curve: "basis",
-    htmlLabels: true,
+    htmlLabels: false,
   },
   suppressErrorRendering: false,
   sequence: { mirrorActors: false, messageAlign: "center" },

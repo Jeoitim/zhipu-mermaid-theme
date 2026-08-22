@@ -3,10 +3,14 @@
 ```text
 zhipu-mermaid-theme/
 ├── .github/workflows/deploy-pages.yml
-├── demo/zhipu-mermaid-gallery.html
+├── demo/
+│   ├── index.html
+│   └── zhipu-mermaid-gallery.html
 ├── public/vendor/mermaid.min.js
 ├── src/
 │   ├── main.js
+│   ├── gallery.js
+│   ├── gallery.css
 │   ├── style.css
 │   └── zhipu-mermaid-theme.js
 ├── index.html

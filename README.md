@@ -8,6 +8,8 @@ A clean-room Mermaid theme reconstruction with responsive Timeline rendering.
 
 [Open the interactive editor](https://jeoitim.github.io/zhipu-mermaid-theme/)
 
+[Browse the diagram gallery](https://jeoitim.github.io/zhipu-mermaid-theme/demo/)
+
 ## Overview
 This project reconstructs the Mermaid presentation layer observed in public ChatGLM web bundles. It provides a reusable theme, a responsive Timeline renderer that avoids Mermaid's vertical section overlap, desktop text wrapping, and an interactive browser editor.
 
@@ -16,6 +18,9 @@ This project reconstructs the Mermaid presentation layer observed in public Chat
 - Responsive mobile Timeline renderer without requiring the TD directive
 - Desktop Timeline text measurement and automatic line wrapping
 - Interactive editor with layout controls, SVG copy and SVG download
+- Infinite-style preview canvas with cursor-centered zoom, drag-to-pan, 100% view and automatic fit
+- SVG, 2× PNG and Mermaid source export, plus source-encoded share links
+- Dedicated multi-diagram gallery at `/demo/`
 - Automated GitHub Pages deployment
 
 ## System Components
@@ -28,6 +33,8 @@ This project reconstructs the Mermaid presentation layer observed in public Chat
 pnpm install
 pnpm dev
 ```
+
+The development and preview servers request a random free local port, avoiding collisions with other projects.
 
 Build both the reusable library and the Pages demo with `pnpm build`.
 
@@ -53,10 +60,14 @@ On narrow containers, Timeline diagrams use an independent vertical SVG renderer
 ```
 zhipu-mermaid-theme/
 ├── .github/workflows/deploy-pages.yml
-├── demo/zhipu-mermaid-gallery.html
+├── demo/
+│   ├── index.html
+│   └── zhipu-mermaid-gallery.html
 ├── public/vendor/mermaid.min.js
 ├── src/
 │   ├── main.js
+│   ├── gallery.js
+│   ├── gallery.css
 │   ├── style.css
 │   └── zhipu-mermaid-theme.js
 ├── index.html

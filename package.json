@@ -14,12 +14,12 @@
     "README.md"
   ],
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/vite-random-port.mjs",
     "build": "pnpm run build:lib && pnpm run build:demo",
     "build:lib": "vite build --config vite.lib.config.js",
     "build:demo": "vite build --outDir dist-demo",
-    "preview": "vite preview --outDir dist-demo",
-    "check": "node --check src/zhipu-mermaid-theme.js && node --check src/main.js"
+    "preview": "node scripts/vite-random-port.mjs preview --outDir dist-demo",
+    "check": "node --check src/zhipu-mermaid-theme.js && node --check src/main.js && node --check src/gallery.js && node --check scripts/vite-random-port.mjs"
   },
   "keywords": [
     "mermaid",
@@ -29,6 +29,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "canvg": "^4.0.3",
     "mermaid": "11.16.1"
   },
   "devDependencies": {

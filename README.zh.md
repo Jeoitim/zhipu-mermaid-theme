@@ -8,6 +8,8 @@
 
 [打开在线编辑器](https://jeoitim.github.io/zhipu-mermaid-theme/)
 
+[浏览图表示例](https://jeoitim.github.io/zhipu-mermaid-theme/demo/)
+
 ## 项目简介
 本项目根据智谱清言网页端公开运行时构建重构 Mermaid 展示层，提供可复用主题、避开官方纵向 section 遮挡的响应式 Timeline renderer、PC 长文本换行和在线编辑预览。
 
@@ -16,6 +18,9 @@
 - 无需 TD 指令的响应式移动端 Timeline renderer
 - PC Timeline 文本测量与自动换行
 - 支持布局切换、复制 SVG 和下载 SVG 的交互式编辑器
+- 以光标为中心滚轮缩放、拖拽平移、100% 与一键适配的自由预览画布
+- 支持 SVG、2× PNG、Mermaid 源码导出及源码分享链接
+- `/demo/` 独立多图表 Gallery，主站专注编辑
 - 自动部署 GitHub Pages
 
 ## 系统组件
@@ -28,6 +33,8 @@
 pnpm install
 pnpm dev
 ```
+
+开发与本地预览服务器会请求随机可用端口，避免和其他本地项目冲突。
 
 运行 `pnpm build` 可同时构建可复用主题库和 Pages 示例网站。
 
@@ -53,10 +60,14 @@ await renderZhipuMermaid(mermaid, document.querySelector("#diagram"), source, {
 ```
 zhipu-mermaid-theme/
 ├── .github/workflows/deploy-pages.yml
-├── demo/zhipu-mermaid-gallery.html
+├── demo/
+│   ├── index.html
+│   └── zhipu-mermaid-gallery.html
 ├── public/vendor/mermaid.min.js
 ├── src/
 │   ├── main.js
+│   ├── gallery.js
+│   ├── gallery.css
 │   ├── style.css
 │   └── zhipu-mermaid-theme.js
 ├── index.html
