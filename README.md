@@ -1,32 +1,33 @@
-# Zhipu Mermaid Theme
-A clean-room Mermaid theme reconstruction with responsive Timeline rendering.
+# Mermaid Theme & Live Editor
+A responsive Mermaid theme toolkit and browser editor with fixed Timeline layouts.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Deploy demo to GitHub Pages](https://github.com/Jeoitim/zhipu-mermaid-theme/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/Jeoitim/zhipu-mermaid-theme/actions/workflows/deploy-pages.yml)
 
-[中文](README.zh.md)
-
-[Open the interactive editor](https://jeoitim.github.io/zhipu-mermaid-theme/)
-
-[Browse the diagram gallery](https://jeoitim.github.io/zhipu-mermaid-theme/demo/)
+[中文](README.zh.md) · [Open editor](https://jeoitim.github.io/zhipu-mermaid-theme/) · [Browse gallery](https://jeoitim.github.io/zhipu-mermaid-theme/demo/)
 
 ## Overview
-This project reconstructs the Mermaid presentation layer observed in public ChatGLM web bundles. It provides a reusable theme, a responsive Timeline renderer that avoids Mermaid's vertical section overlap, desktop text wrapping, and an interactive browser editor.
+This project combines an independent clean-room Mermaid presentation layer with a Mermaid Live Editor-inspired browser workspace. It fixes vertical Timeline section overlap, wraps long desktop labels, provides coordinated light and dark diagram palettes, and keeps editing, previewing, sharing, and exporting entirely in the browser.
 
 ## Key Capabilities
-- Six-color brand palette covering Flowchart, Sequence, Gantt, Pie, GitGraph, Quadrant and XYChart
-- Responsive mobile Timeline renderer without requiring the TD directive
-- Desktop Timeline text measurement and automatic line wrapping
-- Interactive editor with layout controls, SVG copy and SVG download
-- Infinite-style preview canvas with cursor-centered zoom, drag-to-pan, 100% view and automatic fit
-- SVG, 2× PNG and Mermaid source export, plus source-encoded share links
-- Dedicated multi-diagram gallery at `/demo/`
-- Automated GitHub Pages deployment
+- Responsive Timeline renderer: automatic mobile vertical layout without the TD directive and wrapped desktop labels
+- Monaco editor with first-line diagram detection and 16 built-in Mermaid examples
+- SVG pan and zoom with wheel zooming, drag panning, fit-to-canvas, fullscreen preview, and resizable panes
+- Timeline-only render-width popover with a 480px default and persistent user preference
+- Coordinated light and dark UI/diagram themes, including dark Timeline, Flowchart, Sequence, Gantt, Pie, GitGraph, Mindmap, Quadrant, and XY Chart colors
+- Local SVG, PNG, and Mermaid source export, SVG/source copy, and source-encoded share links
+- Dedicated `/demo/` theme gallery and automated GitHub Pages deployment
+- Random free ports for local development and preview to avoid project collisions
+
+## Supported Diagrams
+
+Timeline, Flowchart, Sequence, Class, State, ER, Gantt, Pie, Journey, Git Graph, Mindmap, Quadrant, XY Chart, Requirement, Kanban, and Block.
 
 ## System Components
-- Theme and render helpers (src/zhipu-mermaid-theme.js)
-- Interactive demo editor (src/main.js)
-- GitHub Pages workflow (.github/workflows/deploy-pages.yml)
+- Theme configuration and responsive render helpers (`src/zhipu-mermaid-theme.js`)
+- Monaco editor, pan/zoom canvas, theme switching, detection, sharing, and exports (`src/main.js`)
+- Theme gallery (`demo/index.html`, `src/gallery.js`, and `src/gallery.css`)
+- GitHub Pages workflow (`.github/workflows/deploy-pages.yml`)
 
 ## Quick Start
 ```bash
@@ -34,11 +35,9 @@ pnpm install
 pnpm dev
 ```
 
-The development and preview servers request a random free local port, avoiding collisions with other projects.
+The development server selects a random free local port. To create the library and GitHub Pages bundles, run `pnpm build`.
 
-Build both the reusable library and the Pages demo with `pnpm build`.
-
-## Usage
+## Library Usage
 
 ```js
 import mermaid from "mermaid";
@@ -48,13 +47,15 @@ import {
 } from "./src/zhipu-mermaid-theme.js";
 
 initializeZhipuMermaid(mermaid);
-await renderZhipuMermaid(mermaid, document.querySelector("#diagram"), source, {
-  layout: "auto", // auto | mobile | desktop
-  mobileBreakpoint: 640,
+
+await renderZhipuMermaid(mermaid, container, source, {
+  layout: "auto",
+  width: 480,
+  mode: "dark",
 });
 ```
 
-On narrow containers, Timeline diagrams use an independent vertical SVG renderer and do not require `timeline TD`. Desktop Timeline diagrams keep Mermaid's horizontal structure while measuring and wrapping long labels before rendering.
+`width` determines when Timeline switches between its desktop and mobile layouts; it does not resize other Mermaid diagram types. Use `mode: "light"` or `mode: "dark"` to select the matching palette.
 
 ## Project Structure
 ```
@@ -78,7 +79,8 @@ zhipu-mermaid-theme/
 ```
 
 ## License
-MIT
+
+Released under the [MIT License](LICENSE). Third-party dependency notices are listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
 ## Credits
-Mermaid is maintained by the Mermaid project. ChatGLM and Zhipu are trademarks of their respective owners; this repository is an independent clean-room reconstruction.
+Mermaid is maintained by the Mermaid project. The editor interaction is inspired by Mermaid Live Editor. ChatGLM and Zhipu are trademarks of their respective owners; this repository is an independent clean-room reconstruction.

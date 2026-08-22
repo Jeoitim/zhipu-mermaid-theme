@@ -1,32 +1,33 @@
-# 智谱清言风 Mermaid 主题
-一套带响应式 Timeline 修复的智谱清言风 Mermaid 主题重构方案。
+# Mermaid 主题与在线编辑器
+一套修复 Timeline 排版缺陷的响应式 Mermaid 主题工具与浏览器编辑器。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Deploy demo to GitHub Pages](https://github.com/Jeoitim/zhipu-mermaid-theme/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/Jeoitim/zhipu-mermaid-theme/actions/workflows/deploy-pages.yml)
 
-[English](README.md)
-
-[打开在线编辑器](https://jeoitim.github.io/zhipu-mermaid-theme/)
-
-[浏览图表示例](https://jeoitim.github.io/zhipu-mermaid-theme/demo/)
+[English](README.md) · [打开在线编辑器](https://jeoitim.github.io/zhipu-mermaid-theme/) · [浏览主题展示](https://jeoitim.github.io/zhipu-mermaid-theme/demo/)
 
 ## 项目简介
-本项目根据智谱清言网页端公开运行时构建重构 Mermaid 展示层，提供可复用主题、避开官方纵向 section 遮挡的响应式 Timeline renderer、PC 长文本换行和在线编辑预览。
+本项目将独立 clean-room 重构的 Mermaid 展示层与参考 Mermaid Live Editor 交互的浏览器工作区结合起来，修复 Timeline 纵向 section 遮挡与桌面长文本溢出，提供协调的亮色、暗色图表主题，并在浏览器内完成编辑、预览、分享与导出。
 
 ## 关键能力
-- 六组品牌色覆盖 Flowchart、Sequence、Gantt、Pie、GitGraph、Quadrant 与 XYChart
-- 无需 TD 指令的响应式移动端 Timeline renderer
-- PC Timeline 文本测量与自动换行
-- 支持布局切换、复制 SVG 和下载 SVG 的交互式编辑器
-- 以光标为中心滚轮缩放、拖拽平移、100% 与一键适配的自由预览画布
-- 支持 SVG、2× PNG、Mermaid 源码导出及源码分享链接
-- `/demo/` 独立多图表 Gallery，主站专注编辑
-- 自动部署 GitHub Pages
+- 响应式 Timeline：无需 TD 指令自动使用移动端纵向布局，并为桌面长文本自动换行
+- Monaco 编辑器可根据首个有效类型声明自动识别图表，并内置 16 类 Mermaid 示例
+- SVG 自由缩放与拖拽，支持滚轮缩放、一键适配、全屏预览及可调分栏
+- 仅在 Timeline 下出现的渲染宽度气泡，默认 480px 并记忆用户设置
+- 界面与图表同步的亮色、暗色主题，覆盖 Timeline、Flowchart、Sequence、Gantt、Pie、GitGraph、Mindmap、Quadrant 与 XY Chart 等图表
+- 浏览器本地导出 SVG、PNG 和 Mermaid 源码，支持复制 SVG、复制源码及源码分享链接
+- 独立 `/demo/` 主题展示页与自动化 GitHub Pages 部署
+- 开发与预览使用随机空闲端口，避免本地项目端口冲突
+
+## 支持的图表
+
+Timeline、Flowchart、Sequence、Class、State、ER、Gantt、Pie、Journey、Git Graph、Mindmap、Quadrant、XY Chart、Requirement、Kanban 和 Block。
 
 ## 系统组件
-- 主题与渲染辅助模块（src/zhipu-mermaid-theme.js）
-- 交互式演示编辑器（src/main.js）
-- GitHub Pages 工作流（.github/workflows/deploy-pages.yml）
+- 主题配置与响应式渲染辅助模块（`src/zhipu-mermaid-theme.js`）
+- Monaco 编辑、缩放画布、主题切换、类型识别、分享与导出（`src/main.js`）
+- 主题展示页（`demo/index.html`、`src/gallery.js` 与 `src/gallery.css`）
+- GitHub Pages 工作流（`.github/workflows/deploy-pages.yml`）
 
 ## 快速上手
 ```bash
@@ -34,11 +35,9 @@ pnpm install
 pnpm dev
 ```
 
-开发与本地预览服务器会请求随机可用端口，避免和其他本地项目冲突。
+开发服务器会自动选择一个空闲的随机端口。运行 `pnpm build` 可同时生成库文件与 GitHub Pages 站点。
 
-运行 `pnpm build` 可同时构建可复用主题库和 Pages 示例网站。
-
-## 使用方法
+## 作为主题库使用
 
 ```js
 import mermaid from "mermaid";
@@ -48,13 +47,15 @@ import {
 } from "./src/zhipu-mermaid-theme.js";
 
 initializeZhipuMermaid(mermaid);
-await renderZhipuMermaid(mermaid, document.querySelector("#diagram"), source, {
-  layout: "auto", // auto | mobile | desktop
-  mobileBreakpoint: 640,
+
+await renderZhipuMermaid(mermaid, container, source, {
+  layout: "auto",
+  width: 480,
+  mode: "dark",
 });
 ```
 
-当容器较窄时，Timeline 会使用独立纵向 SVG 渲染器，不要求书写 `timeline TD`；桌面端保留 Mermaid 横向结构，并在渲染前测量长文本、自动插入换行，从源头避开 section 遮挡与文字溢出。
+`width` 用于判断 Timeline 采用桌面还是移动布局，不会改变其他 Mermaid 图表的渲染尺寸。使用 `mode: "light"` 或 `mode: "dark"` 选择对应配色。
 
 ## 目录结构
 ```
@@ -78,7 +79,8 @@ zhipu-mermaid-theme/
 ```
 
 ## 许可证
-MIT
+
+项目采用 [MIT 许可证](LICENSE)。第三方依赖声明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
 
 ## 鸣谢
-Mermaid 由 Mermaid 项目维护。ChatGLM 与智谱相关商标归其权利人所有；本仓库为独立 clean-room 重构项目。
+Mermaid 由 Mermaid 项目维护，编辑器交互参考 Mermaid Live Editor。ChatGLM 与智谱相关商标归其权利人所有；本仓库为独立 clean-room 重构项目。
