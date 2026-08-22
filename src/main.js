@@ -28,6 +28,10 @@ const renderWidthPopover = $("#render-width-popover");
 const widthToggle = $("#width-toggle");
 const layoutControl = $("#layout-control");
 const themeToggle = $("#theme-toggle");
+const sourcePane = $("#source-pane");
+const previewPane = $("#preview-pane");
+const mobileViewButtons = [...document.querySelectorAll("[data-mobile-view-target]")];
+const mobileViewport = matchMedia("(max-width: 900px)");
 
 const presets = {
   timeline: `timeline
@@ -513,6 +517,30 @@ zoomLevel.addEventListener("click", resetView);
 $("#fit").addEventListener("click", resetView);
 previewSurface.addEventListener("dblclick", resetView);
 
+function setMobileView(view) {
+  const nextView = view === "preview" ? "preview" : "code";
+  const mobile = mobileViewport.matches;
+  editorShell.dataset.mobileView = nextView;
+  sourcePane.inert = mobile && nextView !== "code";
+  previewPane.inert = mobile && nextView !== "preview";
+  sourcePane.setAttribute("aria-hidden", String(mobile && nextView !== "code"));
+  previewPane.setAttribute("aria-hidden", String(mobile && nextView !== "preview"));
+  mobileViewButtons.forEach((button) => {
+    const selected = button.dataset.mobileViewTarget === nextView;
+    button.classList.toggle("is-active", selected);
+    button.setAttribute("aria-selected", String(selected));
+  });
+  localStorage.setItem("mermaid-mobile-view", nextView);
+  requestAnimationFrame(() => {
+    editor.layout();
+    panZoom?.resize();
+    if (nextView === "preview" && !viewDirty) resetView();
+  });
+}
+
+mobileViewButtons.forEach((button) => button.addEventListener("click", () => setMobileView(button.dataset.mobileViewTarget)));
+mobileViewport.addEventListener("change", () => setMobileView(editorShell.dataset.mobileView));
+
 $("#copy-source").addEventListener("click", async () => { await navigator.clipboard.writeText(sourceValue()); actionsMenu.open = false; notify("源码已复制"); });
 $("#copy-svg").addEventListener("click", async () => { await navigator.clipboard.writeText(serializedSvg()); actionsMenu.open = false; notify("SVG 已复制"); });
 $("#download-svg").addEventListener("click", () => { downloadBlob(new Blob([serializedSvg()], { type: "image/svg+xml;charset=utf-8" }), `${fileBase()}.svg`); actionsMenu.open = false; });
@@ -569,6 +597,7 @@ splitHandle.addEventListener("keydown", (event) => {
 
 const savedSplit = Number.parseFloat(localStorage.getItem("zhipu-mermaid-split"));
 if (Number.isFinite(savedSplit)) editorShell.style.setProperty("--editor-width", `${Math.min(75, Math.max(25, savedSplit))}%`);
+setMobileView(localStorage.getItem("mermaid-mobile-view") || "code");
 new ResizeObserver(() => { panZoom?.resize(); if (!viewDirty) resetView(); }).observe(previewSurface);
 syncPresetToSource();
 try {

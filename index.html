@@ -45,8 +45,13 @@
       </nav>
     </header>
 
-    <main id="editor-shell" class="editor-shell">
-      <section class="pane source-pane" aria-label="Mermaid 源码编辑区">
+    <main id="editor-shell" class="editor-shell" data-mobile-view="code">
+      <div class="mobile-view-switch" role="tablist" aria-label="移动端编辑视图">
+        <button id="mobile-code-tab" class="is-active" type="button" role="tab" aria-controls="source-pane" aria-selected="true" data-mobile-view-target="code"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5-7 7 7 7 1.5-1.5L4 12l5.5-5.5L8 5Zm8 0-1.5 1.5L20 12l-5.5 5.5L16 19l7-7-7-7Z"/></svg>代码</button>
+        <button id="mobile-preview-tab" type="button" role="tab" aria-controls="preview-pane" aria-selected="false" data-mobile-view-target="preview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c5.5 0 9.5 5.5 9.5 7s-4 7-9.5 7S2.5 13.5 2.5 12 6.5 5 12 5Zm0 2c-3.8 0-6.8 3.3-7.4 5 .6 1.7 3.6 5 7.4 5s6.8-3.3 7.4-5c-.6-1.7-3.6-5-7.4-5Zm0 2.2a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6Z"/></svg>预览</button>
+      </div>
+
+      <section id="source-pane" class="pane source-pane" aria-label="Mermaid 源码编辑区">
         <div class="pane-tabs">
           <button class="active-tab" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5-7 7 7 7 1.5-1.5L4 12l5.5-5.5L8 5Zm8 0-1.5 1.5L20 12l-5.5 5.5L16 19l7-7-7-7Z"/></svg>Code</button>
           <div class="source-actions">
