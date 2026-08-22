@@ -20,6 +20,17 @@ export const zhipuPalette = {
   connector: "#CBD5E1",
 };
 
+export const zhipuDarkPalette = {
+  backgrounds: ["#172554", "#052E16", "#451A03", "#500724", "#2E1065", "#083344"],
+  borders: ["#60A5FA", "#4ADE80", "#FBBF24", "#F472B6", "#A78BFA", "#22D3EE"],
+  text: ["#BFDBFE", "#BBF7D0", "#FDE68A", "#FBCFE8", "#DDD6FE", "#A5F3FC"],
+  title: "#F8FAFC",
+  body: "#CBD5E1",
+  grid: "#334155",
+  line: "#94A3B8",
+  connector: "#475569",
+};
+
 const [blueBg, greenBg, amberBg, pinkBg, violetBg, cyanBg] = zhipuPalette.backgrounds;
 const [blue, green, amber, pink, violet, cyan] = zhipuPalette.borders;
 const [blueText, greenText, amberText, pinkText, violetText, cyanText] = zhipuPalette.text;
@@ -148,6 +159,122 @@ for (let index = 0; index < 24; index += 1) {
   themeVariables[`cScaleInv${index}`] = zhipuPalette.connector;
 }
 
+const darkThemeVariables = {
+  ...themeVariables,
+  darkMode: true,
+  background: "#0F1117",
+  primaryColor: zhipuDarkPalette.backgrounds[0],
+  primaryBorderColor: zhipuDarkPalette.borders[0],
+  primaryTextColor: zhipuDarkPalette.text[0],
+  secondaryColor: zhipuDarkPalette.backgrounds[4],
+  secondaryBorderColor: zhipuDarkPalette.borders[4],
+  secondaryTextColor: zhipuDarkPalette.text[4],
+  tertiaryColor: zhipuDarkPalette.backgrounds[5],
+  tertiaryBorderColor: zhipuDarkPalette.borders[5],
+  tertiaryTextColor: zhipuDarkPalette.text[5],
+  lineColor: zhipuDarkPalette.line,
+  textColor: zhipuDarkPalette.title,
+  titleColor: zhipuDarkPalette.title,
+  edgeLabelBackground: "#171A22",
+  mainBkg: zhipuDarkPalette.backgrounds[0],
+  nodeBorder: zhipuDarkPalette.borders[0],
+  nodeTextColor: zhipuDarkPalette.text[0],
+  clusterBkg: "#171A22",
+  clusterBorder: zhipuDarkPalette.grid,
+  errorBkgColor: zhipuDarkPalette.backgrounds[3],
+  errorTextColor: zhipuDarkPalette.text[3],
+  noteBkgColor: zhipuDarkPalette.backgrounds[2],
+  noteBorderColor: zhipuDarkPalette.borders[2],
+  noteTextColor: zhipuDarkPalette.text[2],
+  actorBkg: zhipuDarkPalette.backgrounds[0],
+  actorBorder: zhipuDarkPalette.borders[0],
+  actorTextColor: zhipuDarkPalette.text[0],
+  actorLineColor: zhipuDarkPalette.connector,
+  signalColor: zhipuDarkPalette.line,
+  signalTextColor: zhipuDarkPalette.body,
+  labelBoxBkgColor: zhipuDarkPalette.backgrounds[4],
+  labelBoxBorderColor: zhipuDarkPalette.borders[4],
+  labelTextColor: zhipuDarkPalette.text[4],
+  loopTextColor: zhipuDarkPalette.text[4],
+  activationBkgColor: zhipuDarkPalette.backgrounds[5],
+  activationBorderColor: zhipuDarkPalette.borders[5],
+  sectionBkgColor: "#171A22",
+  altSectionBkgColor: "#0F1117",
+  sectionBkgColor2: "#1D212B",
+  taskBkgColor: zhipuDarkPalette.backgrounds[0],
+  taskBorderColor: zhipuDarkPalette.borders[0],
+  taskTextColor: zhipuDarkPalette.title,
+  taskTextOutsideColor: zhipuDarkPalette.body,
+  activeTaskBkgColor: zhipuDarkPalette.backgrounds[2],
+  activeTaskBorderColor: zhipuDarkPalette.borders[2],
+  doneTaskBkgColor: zhipuDarkPalette.backgrounds[1],
+  doneTaskBorderColor: zhipuDarkPalette.borders[1],
+  critBkgColor: zhipuDarkPalette.backgrounds[3],
+  critBorderColor: zhipuDarkPalette.borders[3],
+  gridColor: zhipuDarkPalette.grid,
+  todayLineColor: zhipuDarkPalette.borders[3],
+  git0: zhipuDarkPalette.borders[0], git1: zhipuDarkPalette.borders[1],
+  git2: zhipuDarkPalette.borders[2], git3: zhipuDarkPalette.borders[3],
+  git4: zhipuDarkPalette.borders[4], git5: zhipuDarkPalette.borders[5],
+  git6: zhipuDarkPalette.borders[0], git7: zhipuDarkPalette.borders[1],
+  gitBranchLabel0: "#0F172A", gitBranchLabel1: "#052E16",
+  gitBranchLabel2: "#451A03", gitBranchLabel3: "#500724",
+  gitBranchLabel4: "#2E1065", gitBranchLabel5: "#083344",
+  commitLabelColor: zhipuDarkPalette.body,
+  commitLabelBackground: "#171A22",
+  tagLabelColor: zhipuDarkPalette.text[0],
+  tagLabelBackground: zhipuDarkPalette.backgrounds[0],
+  tagLabelBorder: zhipuDarkPalette.borders[0],
+  pie1: zhipuDarkPalette.borders[0], pie2: zhipuDarkPalette.borders[1],
+  pie3: zhipuDarkPalette.borders[2], pie4: zhipuDarkPalette.borders[3],
+  pie5: zhipuDarkPalette.borders[4], pie6: zhipuDarkPalette.borders[5],
+  pie7: zhipuDarkPalette.text[0], pie8: zhipuDarkPalette.text[4],
+  pieTitleTextColor: zhipuDarkPalette.title,
+  pieLegendTextColor: zhipuDarkPalette.body,
+  pieStrokeColor: "#0F1117",
+  pieOuterStrokeColor: "#0F1117",
+  attributeBackgroundColorOdd: "#0F1117",
+  attributeBackgroundColorEven: "#171A22",
+  fillType0: zhipuDarkPalette.backgrounds[0], fillType1: zhipuDarkPalette.backgrounds[1],
+  fillType2: zhipuDarkPalette.backgrounds[2], fillType3: zhipuDarkPalette.backgrounds[3],
+  fillType4: zhipuDarkPalette.backgrounds[4], fillType5: zhipuDarkPalette.backgrounds[5],
+  fillType6: zhipuDarkPalette.backgrounds[0], fillType7: zhipuDarkPalette.backgrounds[1],
+  quadrant1Fill: zhipuDarkPalette.backgrounds[0],
+  quadrant2Fill: zhipuDarkPalette.backgrounds[1],
+  quadrant3Fill: zhipuDarkPalette.backgrounds[2],
+  quadrant4Fill: zhipuDarkPalette.backgrounds[4],
+  quadrant1TextFill: zhipuDarkPalette.text[0],
+  quadrant2TextFill: zhipuDarkPalette.text[1],
+  quadrant3TextFill: zhipuDarkPalette.text[2],
+  quadrant4TextFill: zhipuDarkPalette.text[4],
+  quadrantPointFill: zhipuDarkPalette.borders[0],
+  quadrantPointTextFill: zhipuDarkPalette.title,
+  quadrantXAxisTextFill: zhipuDarkPalette.body,
+  quadrantYAxisTextFill: zhipuDarkPalette.body,
+  quadrantTitleFill: zhipuDarkPalette.title,
+  quadrantInternalBorderStrokeFill: zhipuDarkPalette.connector,
+  quadrantExternalBorderStrokeFill: zhipuDarkPalette.line,
+  xyChart: {
+    backgroundColor: "transparent",
+    titleColor: zhipuDarkPalette.title,
+    xAxisTitleColor: zhipuDarkPalette.body,
+    xAxisLabelColor: zhipuDarkPalette.body,
+    xAxisTickColor: zhipuDarkPalette.connector,
+    xAxisLineColor: zhipuDarkPalette.connector,
+    yAxisTitleColor: zhipuDarkPalette.body,
+    yAxisLabelColor: zhipuDarkPalette.body,
+    yAxisTickColor: zhipuDarkPalette.connector,
+    yAxisLineColor: zhipuDarkPalette.connector,
+    plotColorPalette: zhipuDarkPalette.borders.join(","),
+  },
+};
+
+for (let index = 0; index < 24; index += 1) {
+  darkThemeVariables[`cScale${index}`] = zhipuDarkPalette.backgrounds[index % 6];
+  darkThemeVariables[`cScaleLabel${index}`] = zhipuDarkPalette.text[index % 6];
+  darkThemeVariables[`cScaleInv${index}`] = zhipuDarkPalette.connector;
+}
+
 export const zhipuMermaidConfig = {
   startOnLoad: false,
   theme: "base",
@@ -164,6 +291,12 @@ export const zhipuMermaidConfig = {
   gantt: { titleTopMargin: 25, barHeight: 24, barGap: 6 },
   mindmap: { padding: 14, useMaxWidth: false },
   fontFamily: '"PingFang SC", "Microsoft YaHei", "trebuchet ms", sans-serif',
+};
+
+export const zhipuDarkMermaidConfig = {
+  ...zhipuMermaidConfig,
+  darkMode: true,
+  themeVariables: darkThemeVariables,
 };
 
 export const zhipuBrandCss = `
@@ -196,7 +329,26 @@ svg[id] .section-${index} .nodeLabel,
 svg[id] .section-${index + 6} .nodeLabel {
   color: ${zhipuPalette.text[index]} !important;
   font-weight: 600 !important;
-}`).join("")}`;
+}`).join("")}
+html[data-theme="dark"] svg[id] .mindmap-edges .edge,
+html[data-theme="dark"] svg[id] .edge.section-edge- {
+  stroke: ${zhipuDarkPalette.connector} !important;
+}
+html[data-theme="dark"] svg[id] .section-root .node-bkg {
+  fill: ${zhipuDarkPalette.backgrounds[0]} !important;
+  stroke: ${zhipuDarkPalette.borders[0]} !important;
+}
+${zhipuDarkPalette.backgrounds.map((background, index) => `
+html[data-theme="dark"] svg[id] .section-${index} .node-bkg,
+html[data-theme="dark"] svg[id] .section-${index + 6} .node-bkg {
+  fill: ${background} !important;
+  stroke: ${zhipuDarkPalette.borders[index]} !important;
+}
+html[data-theme="dark"] svg[id] .section-${index} .nodeLabel,
+html[data-theme="dark"] svg[id] .section-${index + 6} .nodeLabel {
+  color: ${zhipuDarkPalette.text[index]} !important;
+}
+`).join("")}`;
 
 export function initializeZhipuMermaid(mermaid) {
   mermaid.initialize(zhipuMermaidConfig);
@@ -220,8 +372,11 @@ export function normalizeTimelineColons(source) {
 let timelineMeasureContext;
 let mermaidRenderQueue = Promise.resolve();
 
-function renderMermaidSerially(mermaid, id, input) {
-  const task = mermaidRenderQueue.then(() => mermaid.render(id, input));
+function renderMermaidSerially(mermaid, id, input, config = zhipuMermaidConfig) {
+  const task = mermaidRenderQueue.then(() => {
+    mermaid.initialize(config);
+    return mermaid.render(id, input);
+  });
   mermaidRenderQueue = task.catch(() => undefined);
   return task;
 }
@@ -327,6 +482,7 @@ function appendSvgText(svg, { x, y, lines, fill, size, weight = 400, anchor = "s
 }
 
 export function renderMobileTimeline(container, source, options = {}) {
+  const palette = options.palette || zhipuPalette;
   const parsed = parseTimelineSource(normalizeTimelineColons(source));
   const width = Math.max(320, Math.floor(options.width || container.clientWidth || 420));
   const lineX = width < 390 ? 34 : 44;
@@ -341,25 +497,25 @@ export function renderMobileTimeline(container, source, options = {}) {
   if (parsed.title) {
     appendSvgText(svg, {
       x: width / 2, y, lines: wrapTimelineText(parsed.title, width - 56, 26, 700),
-      fill: zhipuPalette.title, size: 26, weight: 700, anchor: "middle", lineHeight: 34,
+      fill: palette.title, size: 26, weight: 700, anchor: "middle", lineHeight: 34,
     });
     y += 68;
   }
   const vertical = svgNode("line", {
     x1: lineX, x2: lineX, y1: y, y2: y,
-    stroke: zhipuPalette.connector, "stroke-width": 2,
+    stroke: palette.connector, "stroke-width": 2,
   });
   svg.appendChild(vertical);
   let lastY = y;
 
   parsed.sections.forEach((section, sectionIndex) => {
-    const paletteIndex = sectionIndex % zhipuPalette.backgrounds.length;
-    const background = zhipuPalette.backgrounds[paletteIndex];
-    const border = zhipuPalette.borders[paletteIndex];
-    const textColor = zhipuPalette.text[paletteIndex];
+    const paletteIndex = sectionIndex % palette.backgrounds.length;
+    const background = palette.backgrounds[paletteIndex];
+    const border = palette.borders[paletteIndex];
+    const textColor = palette.text[paletteIndex];
     const ringY = y + 14;
     svg.appendChild(svgNode("circle", {
-      cx: lineX, cy: ringY, r: 11, fill: "#FFFFFF", stroke: border, "stroke-width": 4,
+      cx: lineX, cy: ringY, r: 11, fill: options.mode === "dark" ? "#0F1117" : "#FFFFFF", stroke: border, "stroke-width": 4,
     }));
     if (section.title) {
       appendSvgText(svg, {
@@ -378,7 +534,7 @@ export function renderMobileTimeline(container, source, options = {}) {
       const centerY = y + cardHeight / 2;
       svg.appendChild(svgNode("line", {
         x1: lineX + 6, x2: cardX, y1: centerY, y2: centerY,
-        stroke: zhipuPalette.connector, "stroke-width": 2,
+        stroke: palette.connector, "stroke-width": 2,
       }));
       svg.appendChild(svgNode("circle", { cx: lineX, cy: centerY, r: 6, fill: border }));
       svg.appendChild(svgNode("rect", {
@@ -393,7 +549,7 @@ export function renderMobileTimeline(container, source, options = {}) {
       if (descriptionLines.length) {
         appendSvgText(svg, {
           x: cardX + 17, y: titleY + titleLines.length * 24 + 2, lines: descriptionLines,
-          fill: zhipuPalette.body, size: 16, lineHeight: 22,
+          fill: palette.body, size: 16, lineHeight: 22,
         });
       }
       lastY = centerY;
@@ -411,12 +567,12 @@ export function renderMobileTimeline(container, source, options = {}) {
   return svg;
 }
 
-function replaceFilledPathsWithCards(svg) {
+function replaceFilledPathsWithCards(svg, palette = zhipuPalette) {
   const borderMap = new Map();
-  zhipuPalette.backgrounds.forEach((background, index) => {
-    borderMap.set(background.toUpperCase(), zhipuPalette.borders[index]);
+  palette.backgrounds.forEach((background, index) => {
+    borderMap.set(background.toUpperCase(), palette.borders[index]);
     const value = Number.parseInt(background.slice(1), 16);
-    borderMap.set(`rgb(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255})`, zhipuPalette.borders[index]);
+    borderMap.set(`rgb(${(value >> 16) & 255}, ${(value >> 8) & 255}, ${value & 255})`, palette.borders[index]);
   });
 
   svg.querySelectorAll("path").forEach((path) => {
@@ -442,7 +598,7 @@ function replaceFilledPathsWithCards(svg) {
   });
 }
 
-export function postprocessTimeline(svg, radius = 10) {
+export function postprocessTimeline(svg, radius = 10, palette = zhipuPalette) {
   svg.querySelectorAll("line").forEach((line) => {
     const className = line.getAttribute("class") || "";
     if (/(^|\s)node-line/.test(className)) {
@@ -452,12 +608,12 @@ export function postprocessTimeline(svg, radius = 10) {
       line.hasAttribute("marker-start") ||
       /lineWrapper/.test(line.parentNode?.getAttribute?.("class") || "")
     ) {
-      line.setAttribute("stroke", zhipuPalette.connector);
+      line.setAttribute("stroke", palette.connector);
       line.setAttribute("stroke-dasharray", "4 4");
     }
   });
 
-  replaceFilledPathsWithCards(svg);
+  replaceFilledPathsWithCards(svg, palette);
   svg.querySelectorAll("rect").forEach((rect) => {
     const height = Number.parseFloat(rect.getAttribute("height") || "0");
     if (height < 10) return;
@@ -476,6 +632,9 @@ export function postprocessTimeline(svg, radius = 10) {
 }
 
 export async function renderZhipuMermaid(mermaid, container, source, options = {}) {
+  const dark = options.mode === "dark";
+  const palette = dark ? zhipuDarkPalette : zhipuPalette;
+  const config = dark ? zhipuDarkMermaidConfig : zhipuMermaidConfig;
   const normalized = normalizeTimelineColons(source);
   const type = normalized.trim().split(/\s/)[0];
   const containerWidth = options.width || container.clientWidth || 720;
@@ -483,7 +642,7 @@ export async function renderZhipuMermaid(mermaid, container, source, options = {
     options.layout === "mobile" ||
     (options.layout !== "desktop" && containerWidth <= (options.mobileBreakpoint || 640))
   );
-  if (mobile) return renderMobileTimeline(container, normalized, { ...options, width: containerWidth });
+  if (mobile) return renderMobileTimeline(container, normalized, { ...options, width: containerWidth, palette });
   const prepared = type === "timeline" ? prepareDesktopTimeline(normalized, containerWidth) : normalized;
   const input = type === "timeline"
     ? `%%{init: {"themeVariables": {"fontSize": "16px"}}}%%\n${prepared}`
@@ -492,13 +651,13 @@ export async function renderZhipuMermaid(mermaid, container, source, options = {
   // Mermaid mutates shared renderer state while lazy-loading diagram modules.
   // Serializing calls prevents simultaneous editor and gallery renders from
   // intermittently dropping a diagram or attaching it to the wrong target.
-  const { svg } = await renderMermaidSerially(mermaid, id, input);
+  const { svg } = await renderMermaidSerially(mermaid, id, input, config);
   container.innerHTML = svg;
   const element = container.querySelector("svg");
   if (!element) return null;
   element.style.maxWidth = "100%";
   element.style.height = "auto";
   container.style.overflowX = type === "timeline" ? "auto" : "";
-  if (type === "timeline") postprocessTimeline(element, 10);
+  if (type === "timeline") postprocessTimeline(element, 10, palette);
   return element;
 }

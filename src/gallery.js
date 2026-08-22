@@ -83,21 +83,41 @@ function encodeSource(value) {
 }
 
 const gallery = document.querySelector("#gallery");
-for (const [index, example] of examples.entries()) {
-  const card = document.createElement("article");
-  card.className = `gallery-card${example.wide ? " wide" : ""}`;
-  card.innerHTML = `<div class="card-head"><strong>${example.title}</strong><button type="button">在编辑器打开</button></div><div class="card-canvas" id="example-${index}"></div>`;
-  gallery.appendChild(card);
-  card.querySelector("button").addEventListener("click", () => {
-    location.href = `../#code=${encodeSource(example.source)}`;
-  });
-  const container = card.querySelector(".card-canvas");
-  try {
-    await renderZhipuMermaid(mermaid, container, example.source, {
-      layout: example.layout || "auto",
-      width: example.width || Math.max(640, container.clientWidth - 48),
+const themeToggle = document.querySelector("#gallery-theme-toggle");
+let currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+
+async function renderGallery() {
+  gallery.replaceChildren();
+  for (const [index, example] of examples.entries()) {
+    const card = document.createElement("article");
+    card.className = `gallery-card${example.wide ? " wide" : ""}`;
+    card.innerHTML = `<div class="card-head"><strong>${example.title}</strong><button type="button">在编辑器打开</button></div><div class="card-canvas" id="example-${index}"></div>`;
+    gallery.appendChild(card);
+    card.querySelector("button").addEventListener("click", () => {
+      location.href = `../#code=${encodeSource(example.source)}`;
     });
-  } catch (error) {
-    container.textContent = `渲染失败：${error.message}`;
+    const container = card.querySelector(".card-canvas");
+    try {
+      await renderZhipuMermaid(mermaid, container, example.source, {
+        layout: example.layout || "auto",
+        width: example.width || Math.max(640, container.clientWidth - 48),
+        mode: currentTheme,
+      });
+    } catch (error) {
+      container.textContent = `渲染失败：${error.message}`;
+    }
   }
+}
+
+themeToggle.addEventListener("click", async () => {
+  currentTheme = currentTheme === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = currentTheme;
+  localStorage.setItem("mermaid-editor-theme", currentTheme);
+  await renderGallery();
+});
+
+try {
+  await renderGallery();
+} finally {
+  requestAnimationFrame(() => document.documentElement.classList.add("app-ready"));
 }

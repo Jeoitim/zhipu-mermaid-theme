@@ -22,6 +22,12 @@ const actionsMenu = $("#actions-menu");
 const toast = $("#toast");
 const editorShell = $("#editor-shell");
 const splitHandle = $("#split-handle");
+const renderWidth = $("#render-width");
+const renderWidthValue = $("#render-width-value");
+const renderWidthPopover = $("#render-width-popover");
+const widthToggle = $("#width-toggle");
+const layoutControl = $("#layout-control");
+const themeToggle = $("#theme-toggle");
 
 const presets = {
   timeline: `timeline
@@ -32,12 +38,49 @@ const presets = {
     section 成长
         体验与性能持续优化 : 完善复杂场景下的交互体验与响应性能
         规模化推广 : 扩展更多业务场景并建立稳定运营体系`,
-  graph: `flowchart LR
+  flowchart: `flowchart LR
     A[需求分析] --> B{方案评审}
     B -->|通过| C[开发实现]
     B -->|调整| E[修改方案]
     E --> C
     C --> D[上线发布]`,
+  sequence: `sequenceDiagram
+    actor U as 用户
+    participant W as Web 应用
+    participant A as API
+    U->>W: 提交请求
+    W->>A: 校验并处理
+    A-->>W: 返回结果
+    W-->>U: 更新界面`,
+  class: `classDiagram
+    class User {
+      +String name
+      +login()
+    }
+    class Order {
+      +String id
+      +checkout()
+    }
+    User "1" --> "many" Order : creates`,
+  state: `stateDiagram-v2
+    [*] --> Idle
+    Idle --> Loading : 提交
+    Loading --> Success : 成功
+    Loading --> Error : 失败
+    Error --> Loading : 重试
+    Success --> [*]`,
+  er: `erDiagram
+    USER ||--o{ ORDER : places
+    ORDER ||--|{ ORDER_ITEM : contains
+    PRODUCT ||--o{ ORDER_ITEM : includes
+    USER {
+      string id PK
+      string name
+    }
+    ORDER {
+      string id PK
+      date createdAt
+    }`,
   gantt: `gantt
     title 项目计划
     dateFormat YYYY-MM-DD
@@ -47,13 +90,87 @@ const presets = {
     section 开发
     前端实现 :crit, a3, 2026-08-10, 8d
     联调上线 :a4, after a3, 4d`,
+  pie: `pie showData
+    title 用户来源
+    "自然搜索" : 42
+    "内容推荐" : 28
+    "合作渠道" : 18
+    "直接访问" : 12`,
+  journey: `journey
+    title 用户购买旅程
+    section 浏览
+      发现产品: 5: 用户
+      查看详情: 4: 用户
+    section 购买
+      加入购物车: 4: 用户
+      完成支付: 3: 用户`,
+  git: `gitGraph
+    commit id: "初始化"
+    branch develop
+    checkout develop
+    commit id: "新功能"
+    checkout main
+    merge develop
+    commit id: "发布"`,
+  mindmap: `mindmap
+  root((产品规划))
+    用户研究
+      访谈
+      数据分析
+    产品设计
+      信息架构
+      交互原型
+    研发交付
+      开发
+      测试`,
+  quadrant: `quadrantChart
+    title 功能优先级
+    x-axis 低投入 --> 高投入
+    y-axis 低价值 --> 高价值
+    quadrant-1 重点项目
+    quadrant-2 快速收益
+    quadrant-3 暂缓
+    quadrant-4 谨慎评估
+    搜索优化: [0.28, 0.82]
+    推荐系统: [0.72, 0.88]
+    视觉升级: [0.35, 0.46]`,
+  xychart: `xychart-beta
+    title "月度活跃用户"
+    x-axis "月份" [1, 2, 3, 4, 5, 6]
+    y-axis "用户数" 0 --> 100
+    bar [32, 45, 52, 68, 76, 91]
+    line [28, 39, 58, 64, 82, 95]`,
+  requirement: `requirementDiagram
+    requirement login_requirement {
+      id: 1
+      text: "用户可以安全登录"
+      risk: high
+      verifymethod: test
+    }
+    element login_service {
+      type: service
+    }
+    login_service - satisfies -> login_requirement`,
+  kanban: `kanban
+    todo[待办]
+      task1[需求分析]
+      task2[交互设计]
+    doing[进行中]
+      task3[前端开发]
+    done[已完成]
+      task4[项目初始化]`,
+  block: `block-beta
+    columns 5
+    A["输入"] space B["处理"] space C["输出"]
+    A --> B
+    B --> C`,
 };
 
 monaco.languages.register({ id: "mermaid" });
 monaco.languages.setMonarchTokensProvider("mermaid", {
   tokenizer: {
     root: [
-      [/^\s*(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram-v2|erDiagram|journey|gantt|pie|timeline|mindmap|quadrantChart|xychart-beta)\b/, "keyword.diagram"],
+      [/^\s*(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram(?:-v2)?|erDiagram|journey|gantt|pie|timeline|mindmap|quadrantChart|xychart-beta|requirementDiagram|gitGraph|kanban|block-beta)\b/, "keyword.diagram"],
       [/^\s*(title|section|dateFormat|axisFormat|excludes|todayMarker)\b/, "keyword"],
       [/\b(subgraph|end|participant|actor|as|loop|alt|else|opt|par|and|rect|note|over|left of|right of)\b/, "keyword.control"],
       [/%%.*$/, "comment"],
@@ -85,6 +202,26 @@ monaco.editor.defineTheme("mermaid-live", {
     "editor.lineHighlightBackground": "#F8FAFC",
   },
 });
+monaco.editor.defineTheme("mermaid-live-dark", {
+  base: "vs-dark",
+  inherit: true,
+  rules: [
+    { token: "keyword.diagram", foreground: "FF86AA", fontStyle: "bold" },
+    { token: "keyword", foreground: "C4B5FD" },
+    { token: "keyword.control", foreground: "7DD3FC" },
+    { token: "type.identifier", foreground: "86EFAC" },
+    { token: "operator", foreground: "FDA4AF" },
+    { token: "constant", foreground: "FDE68A" },
+  ],
+  colors: {
+    "editor.background": "#0F1117",
+    "editorGutter.background": "#0F1117",
+    "editorLineNumber.foreground": "#596273",
+    "editorLineNumber.activeForeground": "#D4D8E0",
+    "editor.selectionBackground": "#7C234366",
+    "editor.lineHighlightBackground": "#171A22",
+  },
+});
 
 function encodeSource(value) {
   const bytes = new TextEncoder().encode(value);
@@ -104,10 +241,12 @@ if (shared) {
   try { initialSource = decodeSource(shared); } catch { /* Ignore malformed links. */ }
 }
 
+let currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+
 const editor = monaco.editor.create($("#source-editor"), {
   value: initialSource,
   language: "mermaid",
-  theme: "mermaid-live",
+  theme: currentTheme === "dark" ? "mermaid-live-dark" : "mermaid-live",
   automaticLayout: true,
   minimap: { enabled: false },
   fontFamily: '"Cascadia Code", "SFMono-Regular", Consolas, monospace',
@@ -123,6 +262,10 @@ const editor = monaco.editor.create($("#source-editor"), {
 });
 
 layout.value = localStorage.getItem("zhipu-mermaid-layout") || "auto";
+const savedRenderWidth = Number.parseInt(localStorage.getItem("mermaid-render-width"), 10);
+const defaultRenderWidth = 480;
+renderWidth.value = String(Number.isFinite(savedRenderWidth) ? Math.max(320, Math.min(2000, savedRenderWidth)) : defaultRenderWidth);
+renderWidthValue.value = `${renderWidth.value}px`;
 
 let renderTimer;
 let toastTimer;
@@ -137,9 +280,36 @@ let suppressViewEvents = false;
 
 function sourceValue() { return editor.getValue(); }
 
+function detectDiagramKey(text = sourceValue()) {
+  const first = text.split("\n").map((line) => line.trim()).find((line) => line && !line.startsWith("%%") && !line.startsWith("#")) || "";
+  const type = first.split(/\s+/)[0].toLowerCase();
+  if (type === "graph" || type === "flowchart") return "flowchart";
+  if (type === "sequencediagram") return "sequence";
+  if (type === "classdiagram") return "class";
+  if (type === "statediagram" || type === "statediagram-v2") return "state";
+  if (type === "erdiagram") return "er";
+  if (type === "gitgraph") return "git";
+  if (type === "quadrantchart") return "quadrant";
+  if (type === "xychart-beta") return "xychart";
+  if (type === "requirementdiagram") return "requirement";
+  if (type === "block-beta") return "block";
+  return Object.hasOwn(presets, type) ? type : "custom";
+}
+
+function syncPresetToSource() {
+  const detected = detectDiagramKey();
+  preset.value = detected;
+  layoutControl.classList.toggle("is-hidden", detected !== "timeline");
+  widthToggle.hidden = detected !== "timeline";
+  if (detected !== "timeline") {
+    renderWidthPopover.hidden = true;
+    widthToggle.setAttribute("aria-expanded", "false");
+  }
+}
+
 function diagramType(text = sourceValue()) {
-  const value = text.trim().split(/\s+/)[0] || "diagram";
-  return value === "graph" || value === "flowchart" ? "Flowchart" : value[0]?.toUpperCase() + value.slice(1);
+  const value = detectDiagramKey(text);
+  return value === "custom" ? "diagram" : value;
 }
 
 function setRenderState(state) {
@@ -239,12 +409,15 @@ async function renderDiagram() {
   localStorage.setItem("zhipu-mermaid-layout", layout.value);
   try {
     destroyPanZoom();
-    const width = Math.max(320, Math.floor(previewSurface.clientWidth - 48));
-    const svg = await renderZhipuMermaid(mermaid, preview, sourceValue(), { layout: layout.value, width });
+    const isTimeline = detectDiagramKey() === "timeline";
+    const width = isTimeline
+      ? Number.parseInt(renderWidth.value, 10)
+      : Math.max(320, Math.floor(previewSurface.clientWidth - 48));
+    const svg = await renderZhipuMermaid(mermaid, preview, sourceValue(), { layout: layout.value, width, mode: currentTheme });
     if (sequence !== renderSequence || !svg) return;
     const size = svgSize(svg);
-    naturalWidth = size.width;
-    naturalHeight = size.height;
+    naturalWidth = isTimeline ? width : size.width;
+    naturalHeight = isTimeline ? Math.max(1, Math.round(width * size.height / size.width)) : size.height;
     const exportClone = svg.cloneNode(true);
     exportClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
     exportClone.setAttribute("width", naturalWidth);
@@ -306,9 +479,34 @@ async function exportPng() {
   }
 }
 
-editor.onDidChangeModelContent(scheduleRender);
+editor.onDidChangeModelContent(() => { syncPresetToSource(); scheduleRender(); });
 layout.addEventListener("change", renderDiagram);
-preset.addEventListener("change", () => { editor.setValue(presets[preset.value]); renderDiagram(); });
+preset.addEventListener("change", () => {
+  if (!presets[preset.value]) return;
+  editor.setValue(presets[preset.value]);
+  renderDiagram();
+});
+renderWidth.addEventListener("input", () => {
+  renderWidthValue.value = `${renderWidth.value}px`;
+  localStorage.setItem("mermaid-render-width", renderWidth.value);
+  scheduleRender();
+});
+widthToggle.addEventListener("click", () => {
+  renderWidthPopover.hidden = !renderWidthPopover.hidden;
+  widthToggle.setAttribute("aria-expanded", String(!renderWidthPopover.hidden));
+});
+document.addEventListener("pointerdown", (event) => {
+  if (renderWidthPopover.hidden || renderWidthPopover.contains(event.target) || widthToggle.contains(event.target)) return;
+  renderWidthPopover.hidden = true;
+  widthToggle.setAttribute("aria-expanded", "false");
+});
+themeToggle.addEventListener("click", () => {
+  currentTheme = currentTheme === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = currentTheme;
+  localStorage.setItem("mermaid-editor-theme", currentTheme);
+  monaco.editor.setTheme(currentTheme === "dark" ? "mermaid-live-dark" : "mermaid-live");
+  renderDiagram();
+});
 $("#zoom-in").addEventListener("click", () => panZoom?.zoomIn());
 $("#zoom-out").addEventListener("click", () => panZoom?.zoomOut());
 zoomLevel.addEventListener("click", resetView);
@@ -338,6 +536,12 @@ document.querySelectorAll('input[name="png-size"]').forEach((input) => input.add
 }));
 
 document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    renderWidthPopover.hidden = true;
+    widthToggle.setAttribute("aria-expanded", "false");
+    actionsMenu.open = false;
+    return;
+  }
   if (!(event.ctrlKey || event.metaKey)) return;
   if (event.key === "Enter") { event.preventDefault(); renderDiagram(); }
   if (event.key === "0") { event.preventDefault(); resetView(); }
@@ -366,4 +570,9 @@ splitHandle.addEventListener("keydown", (event) => {
 const savedSplit = Number.parseFloat(localStorage.getItem("zhipu-mermaid-split"));
 if (Number.isFinite(savedSplit)) editorShell.style.setProperty("--editor-width", `${Math.min(75, Math.max(25, savedSplit))}%`);
 new ResizeObserver(() => { panZoom?.resize(); if (!viewDirty) resetView(); }).observe(previewSurface);
-await renderDiagram();
+syncPresetToSource();
+try {
+  await renderDiagram();
+} finally {
+  requestAnimationFrame(() => document.documentElement.classList.add("app-ready"));
+}
