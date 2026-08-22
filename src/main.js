@@ -1,25 +1,31 @@
 import "./style.css";
 import { Canvg } from "canvg";
+import Hammer from "hammerjs";
+import svgPanZoom from "svg-pan-zoom";
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 import { initializeZhipuMermaid, renderZhipuMermaid } from "./zhipu-mermaid-theme.js";
+
+self.MonacoEnvironment = { getWorker: () => new EditorWorker() };
 
 const mermaid = globalThis.mermaid;
 initializeZhipuMermaid(mermaid);
 
 const $ = (selector) => document.querySelector(selector);
-const source = $("#source");
 const preset = $("#preset");
 const layout = $("#layout");
 const preview = $("#preview");
 const previewSurface = $("#preview-surface");
-const previewTransform = $("#preview-transform");
 const renderError = $("#render-error");
 const renderIndicator = $("#render-indicator");
 const renderStatus = $("#render-status");
 const diagramMeta = $("#diagram-meta");
 const sourceMeta = $("#source-meta");
 const zoomLevel = $("#zoom-level");
-const exportMenu = $("#export-menu");
+const actionsMenu = $("#actions-menu");
 const toast = $("#toast");
+const editorShell = $("#editor-shell");
+const splitHandle = $("#split-handle");
 
 const presets = {
   timeline: `timeline
@@ -47,22 +53,101 @@ const presets = {
     联调上线 :a4, after a3, 4d`,
 };
 
-const viewport = {
-  scale: 1, x: 0, y: 0, naturalWidth: 640, naturalHeight: 400,
-  autoFit: true, dragging: false, pointerX: 0, pointerY: 0,
-};
+monaco.languages.register({ id: "mermaid" });
+monaco.languages.setMonarchTokensProvider("mermaid", {
+  tokenizer: {
+    root: [
+      [/^\s*(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram-v2|erDiagram|journey|gantt|pie|timeline|mindmap|quadrantChart|xychart-beta)\b/, "keyword.diagram"],
+      [/^\s*(title|section|dateFormat|axisFormat|excludes|todayMarker)\b/, "keyword"],
+      [/\b(subgraph|end|participant|actor|as|loop|alt|else|opt|par|and|rect|note|over|left of|right of)\b/, "keyword.control"],
+      [/%%.*$/, "comment"],
+      [/[A-Za-z_][\w-]*(?=\s*[\[{(])/, "type.identifier"],
+      [/(-->|---|-.->|==>|--x|--o|<-->|:)/, "operator"],
+      [/\b(done|active|crit|milestone)\b/, "constant"],
+      [/\d{4}-\d{2}-\d{2}|\b\d+(?:\.\d+)?(?:d|h|m|s|%)?\b/, "number"],
+      [/"[^"\\]*(?:\\.[^"\\]*)*"/, "string"],
+    ],
+  },
+});
+monaco.editor.defineTheme("mermaid-live-dark", {
+  base: "vs-dark",
+  inherit: true,
+  rules: [
+    { token: "keyword.diagram", foreground: "7DD3FC", fontStyle: "bold" },
+    { token: "keyword", foreground: "C4B5FD" },
+    { token: "keyword.control", foreground: "93C5FD" },
+    { token: "type.identifier", foreground: "86EFAC" },
+    { token: "operator", foreground: "F9A8D4" },
+    { token: "constant", foreground: "FDE68A" },
+  ],
+  colors: {
+    "editor.background": "#111827",
+    "editorGutter.background": "#111827",
+    "editorLineNumber.foreground": "#526079",
+    "editorLineNumber.activeForeground": "#CBD5E1",
+    "editor.selectionBackground": "#1D4ED866",
+    "editor.lineHighlightBackground": "#172033",
+  },
+});
+
+function encodeSource(value) {
+  const bytes = new TextEncoder().encode(value);
+  let binary = "";
+  bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+}
+
+function decodeSource(value) {
+  const padded = value.replaceAll("-", "+").replaceAll("_", "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
+  return new TextDecoder().decode(Uint8Array.from(atob(padded), (char) => char.charCodeAt(0)));
+}
+
+const shared = new URL(location.href).hash.match(/^#code=(.+)$/)?.[1];
+let initialSource = localStorage.getItem("zhipu-mermaid-source") || presets.timeline;
+if (shared) {
+  try { initialSource = decodeSource(shared); } catch { /* Ignore malformed links. */ }
+}
+
+const editor = monaco.editor.create($("#source-editor"), {
+  value: initialSource,
+  language: "mermaid",
+  theme: "mermaid-live-dark",
+  automaticLayout: true,
+  minimap: { enabled: false },
+  fontFamily: '"Cascadia Code", "SFMono-Regular", Consolas, monospace',
+  fontSize: 13.5,
+  lineHeight: 23,
+  lineNumbersMinChars: 3,
+  padding: { top: 16, bottom: 32 },
+  renderLineHighlight: "line",
+  scrollBeyondLastLine: false,
+  smoothScrolling: true,
+  wordWrap: "off",
+  tabSize: 2,
+});
+
+layout.value = localStorage.getItem("zhipu-mermaid-layout") || "auto";
 
 let renderTimer;
 let toastTimer;
 let renderSequence = 0;
+let exportSvgMarkup = "";
+let naturalWidth = 640;
+let naturalHeight = 400;
+let panZoom;
+let hammer;
+let viewDirty = false;
+let suppressViewEvents = false;
 
-function diagramType(text = source.value) {
+function sourceValue() { return editor.getValue(); }
+
+function diagramType(text = sourceValue()) {
   const value = text.trim().split(/\s+/)[0] || "diagram";
   return value === "graph" || value === "flowchart" ? "Flowchart" : value[0]?.toUpperCase() + value.slice(1);
 }
 
 function updateSourceMeta() {
-  sourceMeta.textContent = `${diagramType()} · ${source.value.split("\n").length} 行`;
+  sourceMeta.textContent = `${diagramType()} · ${editor.getModel()?.getLineCount() || 0} 行`;
 }
 
 function setRenderState(state, message) {
@@ -74,96 +159,120 @@ function notify(message) {
   clearTimeout(toastTimer);
   toast.textContent = message;
   toast.classList.add("show");
-  toastTimer = setTimeout(() => toast.classList.remove("show"), 1500);
-}
-
-function applyViewport() {
-  previewTransform.style.transform = `translate(${viewport.x}px, ${viewport.y}px) scale(${viewport.scale})`;
-  zoomLevel.textContent = `${Math.round(viewport.scale * 100)}%`;
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 1600);
 }
 
 function svgSize(svg) {
   const viewBox = svg.viewBox?.baseVal;
-  const width = viewBox?.width || Number.parseFloat(svg.getAttribute("width")) || svg.getBBox().width || 640;
-  const height = viewBox?.height || Number.parseFloat(svg.getAttribute("height")) || svg.getBBox().height || 400;
-  return { width: Math.max(1, width), height: Math.max(1, height) };
+  const box = (() => { try { return svg.getBBox(); } catch { return null; } })();
+  return {
+    width: Math.max(1, viewBox?.width || Number.parseFloat(svg.getAttribute("width")) || box?.width || 640),
+    height: Math.max(1, viewBox?.height || Number.parseFloat(svg.getAttribute("height")) || box?.height || 400),
+  };
 }
 
-function prepareCanvasSvg(svg) {
-  const size = svgSize(svg);
-  viewport.naturalWidth = size.width;
-  viewport.naturalHeight = size.height;
-  preview.style.width = `${size.width}px`;
-  preview.style.height = `${size.height}px`;
-  svg.style.width = `${size.width}px`;
-  svg.style.height = `${size.height}px`;
-  svg.setAttribute("width", size.width);
-  svg.setAttribute("height", size.height);
-  diagramMeta.textContent = `${diagramType()} · ${Math.round(size.width)} × ${Math.round(size.height)} px`;
+function destroyPanZoom() {
+  hammer?.destroy();
+  hammer = undefined;
+  panZoom?.destroy();
+  panZoom = undefined;
 }
 
-function fitDiagram() {
-  const bounds = previewSurface.getBoundingClientRect();
-  if (!bounds.width || !bounds.height || !preview.querySelector("svg")) return;
-  const padding = bounds.width < 520 ? 24 : 56;
-  viewport.scale = Math.min(
-    (bounds.width - padding * 2) / viewport.naturalWidth,
-    (bounds.height - padding * 2) / viewport.naturalHeight,
-    2,
-  );
-  viewport.scale = Math.max(0.05, viewport.scale);
-  viewport.x = (bounds.width - viewport.naturalWidth * viewport.scale) / 2;
-  viewport.y = (bounds.height - viewport.naturalHeight * viewport.scale) / 2;
-  viewport.autoFit = true;
-  applyViewport();
+function updateZoomLabel(zoom = panZoom?.getZoom() || 1) {
+  zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
 }
 
-function setActualSize() {
-  const bounds = previewSurface.getBoundingClientRect();
-  viewport.scale = 1;
-  viewport.x = (bounds.width - viewport.naturalWidth) / 2;
-  viewport.y = (bounds.height - viewport.naturalHeight) / 2;
-  viewport.autoFit = false;
-  applyViewport();
+function resetView() {
+  if (!panZoom) return;
+  suppressViewEvents = true;
+  panZoom.resize();
+  panZoom.reset();
+  panZoom.fit();
+  panZoom.center();
+  viewDirty = false;
+  updateZoomLabel();
+  requestAnimationFrame(() => { suppressViewEvents = false; viewDirty = false; });
 }
 
-function zoomTo(nextScale, clientX, clientY) {
-  const oldScale = viewport.scale;
-  const next = Math.min(6, Math.max(0.05, nextScale));
-  const bounds = previewSurface.getBoundingClientRect();
-  const anchorX = clientX == null ? bounds.width / 2 : clientX - bounds.left;
-  const anchorY = clientY == null ? bounds.height / 2 : clientY - bounds.top;
-  const worldX = (anchorX - viewport.x) / oldScale;
-  const worldY = (anchorY - viewport.y) / oldScale;
-  viewport.scale = next;
-  viewport.x = anchorX - worldX * next;
-  viewport.y = anchorY - worldY * next;
-  viewport.autoFit = false;
-  applyViewport();
+function attachPanZoom(svg) {
+  destroyPanZoom();
+  svg.removeAttribute("width");
+  svg.removeAttribute("height");
+  svg.style.width = "100%";
+  svg.style.height = "100%";
+  svg.style.maxWidth = "none";
+  panZoom = svgPanZoom(svg, {
+    center: true,
+    controlIconsEnabled: false,
+    fit: true,
+    minZoom: 0.05,
+    maxZoom: 20,
+    zoomScaleSensitivity: 0.2,
+    dblClickZoomEnabled: false,
+    preventMouseEventsDefault: true,
+    customEventsHandler: {
+      haltEventListeners: ["touchstart", "touchend", "touchmove", "touchleave", "touchcancel"],
+      init(options) {
+        const instance = options.instance;
+        let initialScale = 1;
+        let pannedX = 0;
+        let pannedY = 0;
+        hammer = new Hammer(options.svgElement);
+        hammer.get("pinch").set({ enable: true });
+        hammer.on("panstart panmove", (event) => {
+          if (event.type === "panstart") { pannedX = 0; pannedY = 0; }
+          instance.panBy({ x: event.deltaX - pannedX, y: event.deltaY - pannedY });
+          pannedX = event.deltaX; pannedY = event.deltaY;
+        });
+        hammer.on("pinchstart pinchmove", (event) => {
+          if (event.type === "pinchstart") { initialScale = instance.getZoom(); pannedX = 0; pannedY = 0; }
+          instance.zoomAtPoint(initialScale * event.scale, { x: event.center.x, y: event.center.y });
+          instance.panBy({ x: event.deltaX - pannedX, y: event.deltaY - pannedY });
+          pannedX = event.deltaX; pannedY = event.deltaY;
+        });
+      },
+      destroy() { hammer?.destroy(); hammer = undefined; },
+    },
+    onPan() { if (!suppressViewEvents) viewDirty = true; },
+    onZoom(zoom) { if (!suppressViewEvents) viewDirty = true; updateZoomLabel(zoom); },
+  });
+  panZoom.disableDblClickZoom();
+  resetView();
 }
 
 async function renderDiagram() {
   const sequence = ++renderSequence;
-  clearTimeout(renderTimer);
-  setRenderState("busy", "渲染中…");
+  setRenderState("busy", "Rendering…");
   renderError.hidden = true;
   updateSourceMeta();
-  localStorage.setItem("zhipu-mermaid-source", source.value);
+  localStorage.setItem("zhipu-mermaid-source", sourceValue());
   localStorage.setItem("zhipu-mermaid-layout", layout.value);
   try {
-    const width = Math.max(320, Math.floor(previewSurface.clientWidth - 64));
-    const svg = await renderZhipuMermaid(mermaid, preview, source.value, { layout: layout.value, width });
+    destroyPanZoom();
+    const width = Math.max(320, Math.floor(previewSurface.clientWidth - 48));
+    const svg = await renderZhipuMermaid(mermaid, preview, sourceValue(), { layout: layout.value, width });
     if (sequence !== renderSequence || !svg) return;
-    prepareCanvasSvg(svg);
-    requestAnimationFrame(fitDiagram);
-    setRenderState("ready", "已更新");
+    const size = svgSize(svg);
+    naturalWidth = size.width;
+    naturalHeight = size.height;
+    const exportClone = svg.cloneNode(true);
+    exportClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    exportClone.setAttribute("width", naturalWidth);
+    exportClone.setAttribute("height", naturalHeight);
+    exportClone.style.width = "";
+    exportClone.style.height = "";
+    exportSvgMarkup = new XMLSerializer().serializeToString(exportClone);
+    diagramMeta.textContent = `${diagramType()} · ${Math.round(naturalWidth)} × ${Math.round(naturalHeight)} px`;
+    attachPanZoom(svg);
+    setRenderState("ready", "Updated");
   } catch (error) {
     if (sequence !== renderSequence) return;
+    destroyPanZoom();
     preview.replaceChildren();
     renderError.textContent = error.message;
     renderError.hidden = false;
     diagramMeta.textContent = "语法错误";
-    setRenderState("error", "渲染失败");
+    setRenderState("error", "Syntax error");
   }
 }
 
@@ -172,18 +281,12 @@ function scheduleRender() {
   renderTimer = setTimeout(renderDiagram, 220);
 }
 
-function currentSvg() { return preview.querySelector("svg"); }
-
-function serializedSvg(width = viewport.naturalWidth, height = viewport.naturalHeight) {
-  const svg = currentSvg();
-  if (!svg) return "";
-  const clone = svg.cloneNode(true);
-  clone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-  clone.setAttribute("width", width);
-  clone.setAttribute("height", height);
-  clone.style.width = "";
-  clone.style.height = "";
-  return new XMLSerializer().serializeToString(clone);
+function serializedSvg(width = naturalWidth, height = naturalHeight) {
+  if (!exportSvgMarkup) return "";
+  const documentSvg = new DOMParser().parseFromString(exportSvgMarkup, "image/svg+xml").documentElement;
+  documentSvg.setAttribute("width", width);
+  documentSvg.setAttribute("height", height);
+  return new XMLSerializer().serializeToString(documentSvg);
 }
 
 function downloadBlob(blob, filename) {
@@ -198,114 +301,82 @@ function downloadBlob(blob, filename) {
 function fileBase() { return `${diagramType().toLowerCase()}-diagram`; }
 
 async function exportPng() {
-  const maxSide = 8192;
-  const factor = Math.min(2, maxSide / viewport.naturalWidth, maxSide / viewport.naturalHeight);
-  const width = Math.round(viewport.naturalWidth * factor);
-  const height = Math.round(viewport.naturalHeight * factor);
-  const markup = serializedSvg(width, height);
-  if (!markup) return;
+  const requestedWidth = document.querySelector('input[name="png-size"]:checked')?.value === "width"
+    ? Number.parseInt($("#png-width").value, 10) : Math.round(naturalWidth * 2);
+  const width = Math.min(10000, Math.max(3, requestedWidth || naturalWidth * 2));
+  const height = Math.round(width * naturalHeight / naturalWidth);
   try {
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
-    const renderer = await Canvg.fromString(canvas.getContext("2d"), markup, {
-      ignoreAnimation: true,
-      ignoreMouse: true,
-    });
+    const renderer = await Canvg.fromString(canvas.getContext("2d"), serializedSvg(width, height), { ignoreAnimation: true, ignoreMouse: true });
     await renderer.render();
-    canvas.toBlob((png) => png && downloadBlob(png, `${fileBase()}@2x.png`), "image/png");
+    canvas.toBlob((png) => png && downloadBlob(png, `${fileBase()}.png`), "image/png");
   } catch (error) {
     console.error("PNG export failed", error);
     notify("PNG 导出失败");
   }
 }
 
-function encodeSource(value) {
-  const bytes = new TextEncoder().encode(value);
-  let binary = "";
-  bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
-  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
-}
-
-function decodeSource(value) {
-  const padded = value.replaceAll("-", "+").replaceAll("_", "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
-  const binary = atob(padded);
-  return new TextDecoder().decode(Uint8Array.from(binary, (char) => char.charCodeAt(0)));
-}
-
-source.addEventListener("input", scheduleRender);
+editor.onDidChangeModelContent(scheduleRender);
 layout.addEventListener("change", renderDiagram);
-preset.addEventListener("change", () => { source.value = presets[preset.value]; renderDiagram(); });
-$("#zoom-in").addEventListener("click", () => zoomTo(viewport.scale * 1.2));
-$("#zoom-out").addEventListener("click", () => zoomTo(viewport.scale / 1.2));
-zoomLevel.addEventListener("click", setActualSize);
-$("#fit").addEventListener("click", fitDiagram);
-previewSurface.addEventListener("dblclick", fitDiagram);
-previewSurface.addEventListener("wheel", (event) => {
-  event.preventDefault();
-  zoomTo(viewport.scale * Math.exp(-event.deltaY * 0.0015), event.clientX, event.clientY);
-}, { passive: false });
+preset.addEventListener("change", () => { editor.setValue(presets[preset.value]); renderDiagram(); });
+$("#zoom-in").addEventListener("click", () => panZoom?.zoomIn());
+$("#zoom-out").addEventListener("click", () => panZoom?.zoomOut());
+zoomLevel.addEventListener("click", resetView);
+$("#fit").addEventListener("click", resetView);
+previewSurface.addEventListener("dblclick", resetView);
 
-previewSurface.addEventListener("pointerdown", (event) => {
-  if (event.button !== 0) return;
-  viewport.dragging = true;
-  viewport.pointerX = event.clientX;
-  viewport.pointerY = event.clientY;
-  viewport.autoFit = false;
-  previewSurface.classList.add("dragging");
-  previewSurface.setPointerCapture(event.pointerId);
-});
-previewSurface.addEventListener("pointermove", (event) => {
-  if (!viewport.dragging) return;
-  viewport.x += event.clientX - viewport.pointerX;
-  viewport.y += event.clientY - viewport.pointerY;
-  viewport.pointerX = event.clientX;
-  viewport.pointerY = event.clientY;
-  applyViewport();
-});
-function stopDragging(event) {
-  viewport.dragging = false;
-  previewSurface.classList.remove("dragging");
-  if (event.pointerId != null && previewSurface.hasPointerCapture(event.pointerId)) previewSurface.releasePointerCapture(event.pointerId);
-}
-previewSurface.addEventListener("pointerup", stopDragging);
-previewSurface.addEventListener("pointercancel", stopDragging);
-
-$("#copy-source").addEventListener("click", async () => { await navigator.clipboard.writeText(source.value); notify("源码已复制"); });
-$("#copy-svg").addEventListener("click", async () => { await navigator.clipboard.writeText(serializedSvg()); exportMenu.open = false; notify("SVG 已复制"); });
-$("#download-svg").addEventListener("click", () => { downloadBlob(new Blob([serializedSvg()], { type: "image/svg+xml;charset=utf-8" }), `${fileBase()}.svg`); exportMenu.open = false; });
-$("#download-png").addEventListener("click", () => { exportPng(); exportMenu.open = false; });
-$("#download-source").addEventListener("click", () => { downloadBlob(new Blob([source.value], { type: "text/plain;charset=utf-8" }), `${fileBase()}.mmd`); exportMenu.open = false; });
+$("#copy-source").addEventListener("click", async () => { await navigator.clipboard.writeText(sourceValue()); actionsMenu.open = false; notify("源码已复制"); });
+$("#copy-svg").addEventListener("click", async () => { await navigator.clipboard.writeText(serializedSvg()); actionsMenu.open = false; notify("SVG 已复制"); });
+$("#download-svg").addEventListener("click", () => { downloadBlob(new Blob([serializedSvg()], { type: "image/svg+xml;charset=utf-8" }), `${fileBase()}.svg`); actionsMenu.open = false; });
+$("#download-png").addEventListener("click", () => { exportPng(); actionsMenu.open = false; });
+$("#download-source").addEventListener("click", () => { downloadBlob(new Blob([sourceValue()], { type: "text/plain;charset=utf-8" }), `${fileBase()}.mmd`); actionsMenu.open = false; });
 $("#share-link").addEventListener("click", async () => {
   const url = new URL(location.href);
-  url.hash = `code=${encodeSource(source.value)}`;
+  url.hash = `code=${encodeSource(sourceValue())}`;
   history.replaceState(null, "", url);
   await navigator.clipboard.writeText(url.href);
-  exportMenu.open = false;
+  actionsMenu.open = false;
   notify("分享链接已复制");
 });
 $("#fullscreen").addEventListener("click", async () => {
   if (document.fullscreenElement) await document.exitFullscreen();
   else await $("#preview-pane").requestFullscreen();
-  requestAnimationFrame(fitDiagram);
+  requestAnimationFrame(resetView);
 });
+document.querySelectorAll('input[name="png-size"]').forEach((input) => input.addEventListener("change", () => {
+  $("#png-width").disabled = document.querySelector('input[name="png-size"]:checked')?.value !== "width";
+}));
 
 document.addEventListener("keydown", (event) => {
   if (!(event.ctrlKey || event.metaKey)) return;
   if (event.key === "Enter") { event.preventDefault(); renderDiagram(); }
-  if (event.key === "0") { event.preventDefault(); fitDiagram(); }
-  if (event.key === "+" || event.key === "=") { event.preventDefault(); zoomTo(viewport.scale * 1.2); }
-  if (event.key === "-") { event.preventDefault(); zoomTo(viewport.scale / 1.2); }
+  if (event.key === "0") { event.preventDefault(); resetView(); }
+  if (event.key === "+" || event.key === "=") { event.preventDefault(); panZoom?.zoomIn(); }
+  if (event.key === "-") { event.preventDefault(); panZoom?.zoomOut(); }
 });
 
-new ResizeObserver(() => { if (viewport.autoFit) fitDiagram(); }).observe(previewSurface);
-
-const shared = new URL(location.href).hash.match(/^#code=(.+)$/)?.[1];
-if (shared) {
-  try { source.value = decodeSource(shared); } catch { /* Ignore malformed shared links. */ }
-} else {
-  source.value = localStorage.getItem("zhipu-mermaid-source") || source.value;
+let splitting = false;
+function setSplit(clientX) {
+  const bounds = editorShell.getBoundingClientRect();
+  const percent = Math.min(75, Math.max(25, ((clientX - bounds.left) / bounds.width) * 100));
+  editorShell.style.setProperty("--editor-width", `${percent}%`);
+  localStorage.setItem("zhipu-mermaid-split", String(percent));
 }
-layout.value = localStorage.getItem("zhipu-mermaid-layout") || "auto";
+splitHandle.addEventListener("pointerdown", (event) => { splitting = true; splitHandle.setPointerCapture(event.pointerId); document.body.classList.add("resizing"); });
+splitHandle.addEventListener("pointermove", (event) => { if (splitting) setSplit(event.clientX); });
+splitHandle.addEventListener("pointerup", (event) => { splitting = false; splitHandle.releasePointerCapture(event.pointerId); document.body.classList.remove("resizing"); panZoom?.resize(); if (!viewDirty) resetView(); });
+splitHandle.addEventListener("dblclick", () => { editorShell.style.setProperty("--editor-width", "50%"); localStorage.removeItem("zhipu-mermaid-split"); requestAnimationFrame(resetView); });
+splitHandle.addEventListener("keydown", (event) => {
+  if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+  const current = Number.parseFloat(getComputedStyle(editorShell).getPropertyValue("--editor-width")) || 50;
+  editorShell.style.setProperty("--editor-width", `${Math.min(75, Math.max(25, current + (event.key === "ArrowLeft" ? -2 : 2)))}%`);
+  requestAnimationFrame(() => panZoom?.resize());
+});
+
+const savedSplit = Number.parseFloat(localStorage.getItem("zhipu-mermaid-split"));
+if (Number.isFinite(savedSplit)) editorShell.style.setProperty("--editor-width", `${Math.min(75, Math.max(25, savedSplit))}%`);
+new ResizeObserver(() => { panZoom?.resize(); if (!viewDirty) resetView(); }).observe(previewSurface);
 updateSourceMeta();
 await renderDiagram();

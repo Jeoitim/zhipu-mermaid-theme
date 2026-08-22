@@ -3,89 +3,75 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="支持自适应缩放、拖拽预览与多格式导出的 Mermaid 在线编辑器。">
-  <title>智谱清言风 Mermaid 编辑器</title>
+  <meta name="description" content="采用 Mermaid Live Editor 交互框架的智谱清言风 Mermaid 编辑器。">
+  <title>Mermaid Live · 智谱清言风主题</title>
 </head>
 <body>
   <div class="app-shell">
     <header class="topbar">
-      <a class="brand" href="./" aria-label="返回编辑器首页">
+      <a class="brand" href="./" aria-label="编辑器首页">
         <span class="brand-mark" aria-hidden="true">M</span>
-        <span><strong>Mermaid Studio</strong><small>智谱清言风主题</small></span>
+        <strong>Mermaid Live</strong>
+        <span class="brand-note">智谱清言风</span>
       </a>
       <nav class="topnav" aria-label="主导航">
-        <a href="./demo/">图表示例</a>
+        <a href="./demo/">Gallery</a>
         <a href="https://github.com/Jeoitim/zhipu-mermaid-theme" target="_blank" rel="noreferrer">GitHub</a>
+        <details id="actions-menu" class="actions-menu">
+          <summary>Actions <span aria-hidden="true">⌄</span></summary>
+          <div class="actions-popover">
+            <header><strong>导出图表</strong><small>全部在浏览器本地完成</small></header>
+            <div class="export-size">
+              <span>PNG 尺寸</span>
+              <label><input type="radio" name="png-size" value="auto" checked> 自动 2×</label>
+              <label><input type="radio" name="png-size" value="width"> 宽度</label>
+              <input id="png-width" type="number" min="320" max="10000" value="1920" disabled aria-label="PNG 宽度">
+            </div>
+            <div class="action-grid">
+              <button id="download-png" type="button"><b>↓</b><span>PNG<small>高清位图</small></span></button>
+              <button id="download-svg" type="button"><b>↓</b><span>SVG<small>可编辑矢量图</small></span></button>
+              <button id="download-source" type="button"><b>↓</b><span>Mermaid<small>.mmd 源码</small></span></button>
+            </div>
+            <hr>
+            <button id="copy-svg" class="wide-action" type="button">复制 SVG</button>
+            <button id="copy-source" class="wide-action" type="button">复制 Mermaid 源码</button>
+            <button id="share-link" class="wide-action" type="button">复制分享链接</button>
+          </div>
+        </details>
       </nav>
     </header>
 
-    <main class="editor-shell">
+    <main id="editor-shell" class="editor-shell">
       <section class="pane source-pane" aria-label="Mermaid 源码编辑区">
-        <div class="pane-toolbar">
-          <div class="pane-heading"><span class="status-dot"></span><strong>Mermaid 源码</strong></div>
-          <div class="toolbar-actions">
-            <label class="compact-field"><span>示例</span>
-              <select id="preset" aria-label="选择示例">
-                <option value="timeline">Timeline</option>
-                <option value="graph">Flowchart</option>
-                <option value="gantt">Gantt</option>
-              </select>
-            </label>
-            <label class="compact-field"><span>布局</span>
-              <select id="layout" aria-label="Timeline 布局">
-                <option value="auto">自适应</option>
-                <option value="mobile">移动纵向</option>
-                <option value="desktop">桌面横向</option>
-              </select>
-            </label>
-            <button id="copy-source" class="icon-button text-button" type="button">复制源码</button>
+        <div class="pane-tabs">
+          <button class="active-tab" type="button">Code</button>
+          <span class="render-badge"><i id="render-indicator" class="status-dot ready"></i><span id="render-status">Ready</span></span>
+          <div class="source-actions">
+            <label><span>示例</span><select id="preset" aria-label="选择示例"><option value="timeline">Timeline</option><option value="graph">Flowchart</option><option value="gantt">Gantt</option></select></label>
+            <label><span>布局</span><select id="layout" aria-label="Timeline 布局"><option value="auto">自适应</option><option value="mobile">移动纵向</option><option value="desktop">桌面横向</option></select></label>
           </div>
         </div>
-        <div class="editor-wrap">
-          <textarea id="source" aria-label="Mermaid 源码" spellcheck="false">timeline
-    title 产品演进
-    section 起步
-        需求验证与用户访谈 : 验证产品方向并形成最小可行产品方案
-        第一版正式发布 : 完成核心功能开发、联调与上线
-    section 成长
-        体验与性能持续优化 : 完善复杂场景下的交互体验与响应性能
-        规模化推广 : 扩展更多业务场景并建立稳定运营体系</textarea>
-        </div>
-        <footer class="pane-footer"><span id="source-meta">Timeline · 9 行</span><span>Ctrl / ⌘ + Enter 立即渲染</span></footer>
+        <div id="source-editor" class="source-editor" aria-label="Mermaid 源码"></div>
+        <footer class="pane-footer"><span id="source-meta">Timeline</span><span>Ctrl / ⌘ + Enter 渲染</span></footer>
       </section>
 
+      <div id="split-handle" class="split-handle" role="separator" aria-label="拖动调整编辑器与预览宽度" aria-orientation="vertical" tabindex="0"><span></span></div>
+
       <section id="preview-pane" class="pane preview-pane" aria-label="图表预览区">
-        <div class="pane-toolbar preview-toolbar">
-          <div class="pane-heading">
-            <span id="render-indicator" class="status-dot ready"></span><strong>实时预览</strong>
-            <span id="render-status" class="render-status">就绪</span>
-          </div>
-          <div class="toolbar-actions zoom-toolbar" aria-label="预览控制">
-            <button id="zoom-out" class="icon-button" type="button" title="缩小（Ctrl/⌘ + -）" aria-label="缩小">−</button>
-            <button id="zoom-level" class="zoom-level" type="button" title="恢复 100%">100%</button>
-            <button id="zoom-in" class="icon-button" type="button" title="放大（Ctrl/⌘ + +）" aria-label="放大">＋</button>
-            <button id="fit" class="icon-button text-button" type="button" title="适合画布（Ctrl/⌘ + 0）">适合画布</button>
-            <button id="fullscreen" class="icon-button" type="button" title="全屏预览" aria-label="全屏预览">⛶</button>
-            <details id="export-menu" class="export-menu">
-              <summary>导出</summary>
-              <div class="export-popover">
-                <button id="download-svg" type="button"><span>SVG</span><small>矢量图，适合设计软件</small></button>
-                <button id="download-png" type="button"><span>PNG</span><small>2× 高清透明图</small></button>
-                <button id="download-source" type="button"><span>Mermaid 源码</span><small>.mmd 文件</small></button>
-                <hr>
-                <button id="copy-svg" type="button"><span>复制 SVG</span><small>复制到剪贴板</small></button>
-                <button id="share-link" type="button"><span>复制分享链接</span><small>将源码保存在网址中</small></button>
-              </div>
-            </details>
-          </div>
-        </div>
-        <div id="preview-surface" class="preview-surface" tabindex="0" aria-label="可缩放和拖拽的图表画布">
-          <div class="canvas-grid" aria-hidden="true"></div>
-          <div id="preview-transform" class="preview-transform"><div id="preview"></div></div>
+        <div id="preview-surface" class="preview-surface" tabindex="0">
+          <div id="preview" class="preview"></div>
           <div id="render-error" class="render-error" hidden></div>
-          <div class="canvas-hint">滚轮缩放 · 拖拽平移 · 双击适配</div>
+          <div class="floating-toolbar" aria-label="图表视图控制">
+            <button id="fit" type="button" title="重置并适应画布" aria-label="重置并适应画布">⌗</button>
+            <i></i>
+            <button id="zoom-out" type="button" title="缩小" aria-label="缩小">−</button>
+            <button id="zoom-level" class="zoom-level" type="button" title="重置并适应画布">100%</button>
+            <button id="zoom-in" type="button" title="放大" aria-label="放大">＋</button>
+            <i></i>
+            <button id="fullscreen" type="button" title="全屏预览" aria-label="全屏预览">⛶</button>
+          </div>
         </div>
-        <footer class="pane-footer"><span id="diagram-meta">等待渲染</span><span>本地自动保存</span></footer>
+        <footer class="pane-footer preview-footer"><span id="diagram-meta">等待渲染</span><span>滚轮缩放 · 拖拽平移 · 双击复位</span></footer>
       </section>
     </main>
   </div>

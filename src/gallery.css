@@ -13,17 +13,18 @@ body { margin: 0; }
 h1 { margin: 0; font-size: clamp(34px,5vw,54px); letter-spacing: -.05em; }
 .gallery-intro > p { max-width: 620px; margin: 0 0 5px; color: #64748b; line-height: 1.7; }
 .gallery-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
-.gallery-card { grid-column: span 6; overflow: hidden; border: 1px solid #dbe3ee; border-radius: 16px; background: #fff; box-shadow: 0 12px 36px rgba(15,23,42,.05); }
+.gallery-card { grid-column: span 6; min-height: 0; display: grid; grid-template-rows: auto minmax(360px,1fr); overflow: hidden; border: 1px solid #dbe3ee; border-radius: 16px; background: #fff; box-shadow: 0 12px 36px rgba(15,23,42,.05); }
 .gallery-card.wide { grid-column: span 12; }
 .card-head { display: flex; align-items: center; justify-content: space-between; padding: 13px 15px; border-bottom: 1px solid #e2e8f0; }
 .card-head strong { font-size: 13px; }
 .card-head button { padding: 6px 9px; border: 1px solid #cbd5e1; border-radius: 7px; color: #334155; background: #fff; cursor: pointer; font-size: 11px; }
 .card-head button:hover { color: #2563eb; border-color: #93c5fd; background: #eff6ff; }
-.card-canvas { min-height: 360px; display: grid; place-items: center; padding: 24px; overflow: auto; background: radial-gradient(#e2e8f0 1px, transparent 1px) 0 0/20px 20px, #f8fafc; }
-.card-canvas svg { max-width: 100% !important; max-height: 520px; height: auto; }
+.card-canvas { width: 100%; height: 100%; min-height: 360px; display: flex; align-items: center; justify-content: center; padding: 24px; overflow: auto; background: radial-gradient(#e2e8f0 1px, transparent 1px) 0 0/20px 20px, #f8fafc; }
+.card-canvas svg { flex: 0 0 auto; display: block; max-width: 100% !important; max-height: 520px; height: auto; margin: auto; }
 .gallery-card.wide .card-canvas { min-height: 420px; }
 @media (max-width: 820px) {
   .gallery-intro { display: grid; gap: 14px; }
   .gallery-card, .gallery-card.wide { grid-column: span 12; }
+  .gallery-card { grid-template-rows: auto minmax(300px,1fr); }
   .card-canvas { min-height: 300px; padding: 14px; }
 }
