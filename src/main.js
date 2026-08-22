@@ -1,15 +1,19 @@
-import "./style.css";
-import { Canvg } from "canvg";
 import Hammer from "hammerjs";
 import svgPanZoom from "svg-pan-zoom";
-import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
-import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 import { initializeZhipuMermaid, renderZhipuMermaid } from "./zhipu-mermaid-theme.js";
 
-self.MonacoEnvironment = { getWorker: () => new EditorWorker() };
-
-const mermaid = globalThis.mermaid;
-initializeZhipuMermaid(mermaid);
+let mermaid;
+let mermaidPromise;
+function loadMermaid() {
+  if (!mermaidPromise) {
+    mermaidPromise = import("mermaid").then(({ default: engine }) => {
+      mermaid = engine;
+      initializeZhipuMermaid(mermaid);
+      return mermaid;
+    });
+  }
+  return mermaidPromise;
+}
 
 const $ = (selector) => document.querySelector(selector);
 const preset = $("#preset");
@@ -170,6 +174,7 @@ const presets = {
     B --> C`,
 };
 
+function configureMonaco(monaco) {
 monaco.languages.register({ id: "mermaid" });
 monaco.languages.setMonarchTokensProvider("mermaid", {
   tokenizer: {
@@ -226,6 +231,7 @@ monaco.editor.defineTheme("mermaid-live-dark", {
     "editor.lineHighlightBackground": "#171A22",
   },
 });
+}
 
 function encodeSource(value) {
   const bytes = new TextEncoder().encode(value);
@@ -247,23 +253,41 @@ if (shared) {
 
 let currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
 
-const editor = monaco.editor.create($("#source-editor"), {
-  value: initialSource,
-  language: "mermaid",
-  theme: currentTheme === "dark" ? "mermaid-live-dark" : "mermaid-live",
-  automaticLayout: true,
-  minimap: { enabled: false },
-  fontFamily: '"Cascadia Code", "SFMono-Regular", Consolas, monospace',
-  fontSize: 13.5,
-  lineHeight: 23,
-  lineNumbersMinChars: 3,
-  padding: { top: 16, bottom: 32 },
-  renderLineHighlight: "line",
-  scrollBeyondLastLine: false,
-  smoothScrolling: true,
-  wordWrap: "off",
-  tabSize: 2,
-});
+const sourceEditor = $("#source-editor");
+const fallbackEditor = $("#source-fallback");
+if (!fallbackEditor.value) fallbackEditor.value = initialSource;
+let monaco;
+let editor;
+
+async function enhanceEditor() {
+  const [monacoApi, workerModule] = await Promise.all([
+    import("monaco-editor/esm/vs/editor/editor.api"),
+    import("monaco-editor/esm/vs/editor/editor.worker?worker"),
+  ]);
+  monaco = monacoApi;
+  self.MonacoEnvironment = { getWorker: () => new workerModule.default() };
+  configureMonaco(monaco);
+  editor = monaco.editor.create(sourceEditor, {
+    value: fallbackEditor.value,
+    language: "mermaid",
+    theme: currentTheme === "dark" ? "mermaid-live-dark" : "mermaid-live",
+    automaticLayout: true,
+    minimap: { enabled: false },
+    fontFamily: '"Cascadia Code", "SFMono-Regular", Consolas, monospace',
+    fontSize: 13.5,
+    lineHeight: 23,
+    lineNumbersMinChars: 3,
+    padding: { top: 16, bottom: 32 },
+    renderLineHighlight: "line",
+    scrollBeyondLastLine: false,
+    smoothScrolling: true,
+    wordWrap: "off",
+    tabSize: 2,
+  });
+  editor.onDidChangeModelContent(handleSourceChange);
+  sourceEditor.classList.add("is-enhanced");
+  requestAnimationFrame(() => editor?.layout());
+}
 
 layout.value = localStorage.getItem("zhipu-mermaid-layout") || "auto";
 const savedRenderWidth = Number.parseInt(localStorage.getItem("mermaid-render-width"), 10);
@@ -282,7 +306,7 @@ let hammer;
 let viewDirty = false;
 let suppressViewEvents = false;
 
-function sourceValue() { return editor.getValue(); }
+function sourceValue() { return editor?.getValue() ?? fallbackEditor.value; }
 
 function detectDiagramKey(text = sourceValue()) {
   const first = text.split("\n").map((line) => line.trim()).find((line) => line && !line.startsWith("%%") && !line.startsWith("#")) || "";
@@ -417,7 +441,9 @@ async function renderDiagram() {
     const width = isTimeline
       ? Number.parseInt(renderWidth.value, 10)
       : Math.max(320, Math.floor(previewSurface.clientWidth - 48));
-    const svg = await renderZhipuMermaid(mermaid, preview, sourceValue(), { layout: layout.value, width, mode: currentTheme });
+    const mobileTimeline = isTimeline && (layout.value === "mobile" || (layout.value !== "desktop" && width <= 640));
+    const engine = mobileTimeline ? undefined : await loadMermaid();
+    const svg = await renderZhipuMermaid(engine, preview, sourceValue(), { layout: layout.value, width, mode: currentTheme });
     if (sequence !== renderSequence || !svg) return;
     const size = svgSize(svg);
     naturalWidth = isTimeline ? width : size.width;
@@ -471,6 +497,7 @@ async function exportPng() {
   const width = Math.min(10000, Math.max(3, requestedWidth || naturalWidth * 2));
   const height = Math.round(width * naturalHeight / naturalWidth);
   try {
+    const { Canvg } = await import("canvg");
     const canvas = document.createElement("canvas");
     canvas.width = width;
     canvas.height = height;
@@ -483,11 +510,13 @@ async function exportPng() {
   }
 }
 
-editor.onDidChangeModelContent(() => { syncPresetToSource(); scheduleRender(); });
+function handleSourceChange() { syncPresetToSource(); scheduleRender(); }
+fallbackEditor.addEventListener("input", handleSourceChange);
 layout.addEventListener("change", renderDiagram);
 preset.addEventListener("change", () => {
   if (!presets[preset.value]) return;
-  editor.setValue(presets[preset.value]);
+  if (editor) editor.setValue(presets[preset.value]);
+  else fallbackEditor.value = presets[preset.value];
   renderDiagram();
 });
 renderWidth.addEventListener("input", () => {
@@ -508,7 +537,7 @@ themeToggle.addEventListener("click", () => {
   currentTheme = currentTheme === "dark" ? "light" : "dark";
   document.documentElement.dataset.theme = currentTheme;
   localStorage.setItem("mermaid-editor-theme", currentTheme);
-  monaco.editor.setTheme(currentTheme === "dark" ? "mermaid-live-dark" : "mermaid-live");
+  monaco?.editor.setTheme(currentTheme === "dark" ? "mermaid-live-dark" : "mermaid-live");
   renderDiagram();
 });
 $("#zoom-in").addEventListener("click", () => panZoom?.zoomIn());
@@ -532,7 +561,7 @@ function setMobileView(view) {
   });
   localStorage.setItem("mermaid-mobile-view", nextView);
   requestAnimationFrame(() => {
-    editor.layout();
+    editor?.layout();
     panZoom?.resize();
     if (nextView === "preview" && !viewDirty) resetView();
   });
@@ -605,3 +634,4 @@ try {
 } finally {
   requestAnimationFrame(() => document.documentElement.classList.add("app-ready"));
 }
+enhanceEditor().catch((error) => console.error("Monaco editor failed to load", error));

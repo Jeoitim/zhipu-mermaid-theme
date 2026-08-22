@@ -6,6 +6,7 @@
   <meta name="description" content="Mermaid 主题图表示例画廊。">
   <title>Mermaid 主题展示</title>
   <link rel="icon" href="../icons/mermaid.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/src/gallery.css">
   <script>document.documentElement.dataset.theme=localStorage.getItem("mermaid-editor-theme")||((matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light")</script>
   <style>html{background:#f1f5f9}html[data-theme="dark"]{background:#0f1117}body{margin:0}.gallery-brand img{width:26px;height:26px}.gallery-topbar svg{width:16px;height:16px}.gallery-topbar,.gallery-shell{opacity:0}.boot-splash{position:fixed;z-index:9999;inset:0;display:grid;place-items:center;background:inherit;transition:opacity .16s ease}.boot-splash img{width:34px;height:34px;animation:boot-pulse 1s ease-in-out infinite alternate}html.app-ready .gallery-topbar,html.app-ready .gallery-shell{opacity:1;transition:opacity .16s ease}html.app-ready .boot-splash{opacity:0;pointer-events:none}@keyframes boot-pulse{to{transform:scale(.9);opacity:.58}}</style>
 </head>
@@ -29,7 +30,7 @@
     </div>
     <section id="gallery" class="gallery-grid" aria-label="Mermaid 图表示例"></section>
   </main>
-  <script src="../vendor/mermaid.min.js"></script>
-  <script type="module" src="/src/gallery.js"></script>
+  <script>document.documentElement.classList.add("app-ready")</script>
+  <script type="module">requestAnimationFrame(()=>import("/src/gallery.js"))</script>
 </body>
 </html>

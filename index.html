@@ -6,6 +6,7 @@
   <meta name="description" content="支持实时预览、自由缩放与多格式导出的 Mermaid 在线编辑器。">
   <title>Mermaid 在线编辑器</title>
   <link rel="icon" href="./icons/mermaid.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/src/style.css">
   <script>document.documentElement.dataset.theme=localStorage.getItem("mermaid-editor-theme")||((matchMedia("(prefers-color-scheme: dark)").matches)?"dark":"light")</script>
   <style>html{background:#fff}html[data-theme="dark"]{background:#0f1117}body{margin:0}.brand img{width:26px;height:26px}.topbar svg,.active-tab svg,.floating-toolbar svg{width:16px;height:16px}.app-shell{opacity:0}.boot-splash{position:fixed;z-index:9999;inset:0;display:grid;place-items:center;background:inherit;transition:opacity .16s ease}.boot-splash img{width:34px;height:34px;animation:boot-pulse 1s ease-in-out infinite alternate}html.app-ready .app-shell{opacity:1;transition:opacity .16s ease}html.app-ready .boot-splash{opacity:0;pointer-events:none}@keyframes boot-pulse{to{transform:scale(.9);opacity:.58}}</style>
 </head>
@@ -59,7 +60,14 @@
             <label id="layout-control"><select id="layout" aria-label="Timeline 布局"><option value="auto">自适应</option><option value="mobile">移动纵向</option><option value="desktop">桌面横向</option></select></label>
           </div>
         </div>
-        <div id="source-editor" class="source-editor" aria-label="Mermaid 源码"></div>
+        <div id="source-editor" class="source-editor" aria-label="Mermaid 源码"><textarea id="source-fallback" class="source-fallback" aria-label="Mermaid 源码编辑器" spellcheck="false">timeline
+    title 产品演进
+    section 起步
+        需求验证与用户访谈 : 验证产品方向并形成最小可行产品方案
+        第一版正式发布 : 完成核心功能开发、联调与上线
+    section 成长
+        体验与性能持续优化 : 完善复杂场景下的交互体验与响应性能
+        规模化推广 : 扩展更多业务场景并建立稳定运营体系</textarea></div>
       </section>
 
       <div id="split-handle" class="split-handle" role="separator" aria-label="拖动调整编辑器与预览宽度" aria-orientation="vertical" tabindex="0"><span></span></div>
@@ -84,7 +92,7 @@
     </main>
   </div>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
-  <script src="./vendor/mermaid.min.js"></script>
-  <script type="module" src="/src/main.js"></script>
+  <script>(()=>{const e=document.getElementById("source-fallback");let s=localStorage.getItem("zhipu-mermaid-source");const m=location.hash.match(/^#code=(.+)$/)?.[1];if(m)try{const p=m.replaceAll("-","+").replaceAll("_","/").padEnd(Math.ceil(m.length/4)*4,"=");s=new TextDecoder().decode(Uint8Array.from(atob(p),c=>c.charCodeAt(0)))}catch{}if(s)e.value=s;document.documentElement.classList.add("app-ready")})()</script>
+  <script type="module">requestAnimationFrame(()=>import("/src/main.js"))</script>
 </body>
 </html>

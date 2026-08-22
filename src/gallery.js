@@ -1,7 +1,6 @@
-import "./gallery.css";
+import mermaid from "mermaid";
 import { initializeZhipuMermaid, renderZhipuMermaid } from "./zhipu-mermaid-theme.js";
 
-const mermaid = globalThis.mermaid;
 initializeZhipuMermaid(mermaid);
 
 const examples = [
