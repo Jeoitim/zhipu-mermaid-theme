@@ -1,0 +1,37 @@
+{
+  "project_name_en": "Zhipu Mermaid Theme",
+  "project_name_zh": "智谱清言风 Mermaid 主题",
+  "tagline_en": "A clean-room Mermaid theme reconstruction with responsive Timeline rendering.",
+  "tagline_zh": "一套带响应式 Timeline 修复的智谱清言风 Mermaid 主题重构方案。",
+  "overview_en": "This project reconstructs the Mermaid presentation layer observed in public ChatGLM web bundles. It provides a reusable theme, a responsive Timeline renderer that avoids Mermaid's vertical section overlap, desktop text wrapping, and an interactive browser editor.",
+  "overview_zh": "本项目根据智谱清言网页端公开运行时构建重构 Mermaid 展示层，提供可复用主题、避开官方纵向 section 遮挡的响应式 Timeline renderer、PC 长文本换行和在线编辑预览。",
+  "features_en": [
+    "Six-color brand palette covering Flowchart, Sequence, Gantt, Pie, GitGraph, Quadrant and XYChart",
+    "Responsive mobile Timeline renderer without requiring the TD directive",
+    "Desktop Timeline text measurement and automatic line wrapping",
+    "Interactive editor with layout controls, SVG copy and SVG download",
+    "Automated GitHub Pages deployment"
+  ],
+  "features_zh": [
+    "六组品牌色覆盖 Flowchart、Sequence、Gantt、Pie、GitGraph、Quadrant 与 XYChart",
+    "无需 TD 指令的响应式移动端 Timeline renderer",
+    "PC Timeline 文本测量与自动换行",
+    "支持布局切换、复制 SVG 和下载 SVG 的交互式编辑器",
+    "自动部署 GitHub Pages"
+  ],
+  "components_en": [
+    "Theme and render helpers (src/zhipu-mermaid-theme.js)",
+    "Interactive demo editor (src/main.js)",
+    "GitHub Pages workflow (.github/workflows/deploy-pages.yml)"
+  ],
+  "components_zh": [
+    "主题与渲染辅助模块（src/zhipu-mermaid-theme.js）",
+    "交互式演示编辑器（src/main.js）",
+    "GitHub Pages 工作流（.github/workflows/deploy-pages.yml）"
+  ],
+  "quick_start_en": ["pnpm install", "pnpm dev"],
+  "quick_start_zh": ["pnpm install", "pnpm dev"],
+  "license": "MIT",
+  "credits_en": "Mermaid is maintained by the Mermaid project. ChatGLM and Zhipu are trademarks of their respective owners; this repository is an independent clean-room reconstruction.",
+  "credits_zh": "Mermaid 由 Mermaid 项目维护。ChatGLM 与智谱相关商标归其权利人所有；本仓库为独立 clean-room 重构项目。"
+}

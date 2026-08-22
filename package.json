@@ -1,0 +1,37 @@
+{
+  "name": "zhipu-mermaid-theme",
+  "version": "0.1.0",
+  "description": "A clean-room Mermaid theme reconstruction with responsive Timeline layout fixes.",
+  "type": "module",
+  "main": "./dist/zhipu-mermaid-theme.js",
+  "module": "./dist/zhipu-mermaid-theme.js",
+  "exports": {
+    ".": "./dist/zhipu-mermaid-theme.js"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "pnpm run build:lib && pnpm run build:demo",
+    "build:lib": "vite build --config vite.lib.config.js",
+    "build:demo": "vite build --outDir dist-demo",
+    "preview": "vite preview --outDir dist-demo",
+    "check": "node --check src/zhipu-mermaid-theme.js && node --check src/main.js"
+  },
+  "keywords": [
+    "mermaid",
+    "timeline",
+    "theme",
+    "responsive"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "mermaid": "11.16.1"
+  },
+  "devDependencies": {
+    "vite": "^7.1.3"
+  }
+}
