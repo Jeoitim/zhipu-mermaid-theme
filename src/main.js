@@ -17,10 +17,6 @@ const layout = $("#layout");
 const preview = $("#preview");
 const previewSurface = $("#preview-surface");
 const renderError = $("#render-error");
-const renderIndicator = $("#render-indicator");
-const renderStatus = $("#render-status");
-const diagramMeta = $("#diagram-meta");
-const sourceMeta = $("#source-meta");
 const zoomLevel = $("#zoom-level");
 const actionsMenu = $("#actions-menu");
 const toast = $("#toast");
@@ -69,24 +65,24 @@ monaco.languages.setMonarchTokensProvider("mermaid", {
     ],
   },
 });
-monaco.editor.defineTheme("mermaid-live-dark", {
-  base: "vs-dark",
+monaco.editor.defineTheme("mermaid-live", {
+  base: "vs",
   inherit: true,
   rules: [
-    { token: "keyword.diagram", foreground: "7DD3FC", fontStyle: "bold" },
-    { token: "keyword", foreground: "C4B5FD" },
-    { token: "keyword.control", foreground: "93C5FD" },
-    { token: "type.identifier", foreground: "86EFAC" },
-    { token: "operator", foreground: "F9A8D4" },
-    { token: "constant", foreground: "FDE68A" },
+    { token: "keyword.diagram", foreground: "A3156B", fontStyle: "bold" },
+    { token: "keyword", foreground: "7C3AED" },
+    { token: "keyword.control", foreground: "0066B8" },
+    { token: "type.identifier", foreground: "16825D" },
+    { token: "operator", foreground: "C24170" },
+    { token: "constant", foreground: "9A6700" },
   ],
   colors: {
-    "editor.background": "#111827",
-    "editorGutter.background": "#111827",
-    "editorLineNumber.foreground": "#526079",
-    "editorLineNumber.activeForeground": "#CBD5E1",
-    "editor.selectionBackground": "#1D4ED866",
-    "editor.lineHighlightBackground": "#172033",
+    "editor.background": "#FFFFFF",
+    "editorGutter.background": "#FFFFFF",
+    "editorLineNumber.foreground": "#A0A7B4",
+    "editorLineNumber.activeForeground": "#4B5563",
+    "editor.selectionBackground": "#FBCFE8",
+    "editor.lineHighlightBackground": "#F8FAFC",
   },
 });
 
@@ -111,7 +107,7 @@ if (shared) {
 const editor = monaco.editor.create($("#source-editor"), {
   value: initialSource,
   language: "mermaid",
-  theme: "mermaid-live-dark",
+  theme: "mermaid-live",
   automaticLayout: true,
   minimap: { enabled: false },
   fontFamily: '"Cascadia Code", "SFMono-Regular", Consolas, monospace',
@@ -146,13 +142,8 @@ function diagramType(text = sourceValue()) {
   return value === "graph" || value === "flowchart" ? "Flowchart" : value[0]?.toUpperCase() + value.slice(1);
 }
 
-function updateSourceMeta() {
-  sourceMeta.textContent = `${diagramType()} · ${editor.getModel()?.getLineCount() || 0} 行`;
-}
-
-function setRenderState(state, message) {
-  renderIndicator.className = `status-dot ${state}`;
-  renderStatus.textContent = message;
+function setRenderState(state) {
+  previewSurface.setAttribute("aria-busy", state === "busy" ? "true" : "false");
 }
 
 function notify(message) {
@@ -242,9 +233,8 @@ function attachPanZoom(svg) {
 
 async function renderDiagram() {
   const sequence = ++renderSequence;
-  setRenderState("busy", "Rendering…");
+  setRenderState("busy");
   renderError.hidden = true;
-  updateSourceMeta();
   localStorage.setItem("zhipu-mermaid-source", sourceValue());
   localStorage.setItem("zhipu-mermaid-layout", layout.value);
   try {
@@ -262,17 +252,15 @@ async function renderDiagram() {
     exportClone.style.width = "";
     exportClone.style.height = "";
     exportSvgMarkup = new XMLSerializer().serializeToString(exportClone);
-    diagramMeta.textContent = `${diagramType()} · ${Math.round(naturalWidth)} × ${Math.round(naturalHeight)} px`;
     attachPanZoom(svg);
-    setRenderState("ready", "Updated");
+    setRenderState("ready");
   } catch (error) {
     if (sequence !== renderSequence) return;
     destroyPanZoom();
     preview.replaceChildren();
     renderError.textContent = error.message;
     renderError.hidden = false;
-    diagramMeta.textContent = "语法错误";
-    setRenderState("error", "Syntax error");
+    setRenderState("error");
   }
 }
 
@@ -378,5 +366,4 @@ splitHandle.addEventListener("keydown", (event) => {
 const savedSplit = Number.parseFloat(localStorage.getItem("zhipu-mermaid-split"));
 if (Number.isFinite(savedSplit)) editorShell.style.setProperty("--editor-width", `${Math.min(75, Math.max(25, savedSplit))}%`);
 new ResizeObserver(() => { panZoom?.resize(); if (!viewDirty) resetView(); }).observe(previewSurface);
-updateSourceMeta();
 await renderDiagram();

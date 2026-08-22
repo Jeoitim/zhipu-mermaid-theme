@@ -1,12 +1,16 @@
-:root { color: #0f172a; background: #f1f5f9; font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; }
+@import "@fontsource-variable/recursive/crsv.css";
+:root { color: #0f172a; background: #f1f5f9; font-family: "Recursive Variable", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif; }
 * { box-sizing: border-box; }
 body { margin: 0; }
-.gallery-topbar { position: sticky; top: 0; z-index: 20; height: 58px; display: flex; align-items: center; justify-content: space-between; padding: 0 max(18px, calc((100% - 1380px)/2)); border-bottom: 1px solid #dbe3ee; background: rgba(255,255,255,.94); backdrop-filter: blur(12px); }
+.gallery-topbar { position: sticky; top: 0; z-index: 20; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; background: rgba(255,255,255,.96); backdrop-filter: blur(12px); }
 .gallery-brand { display: flex; align-items: center; gap: 9px; color: #0f172a; text-decoration: none; }
-.gallery-brand span { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 9px; color: #fff; background: linear-gradient(145deg,#2563eb,#22c55e); font-weight: 800; }
+.gallery-brand img { width: 26px; height: 26px; border-radius: 6px; }
+.gallery-brand strong { color: #e00048; font-size: 15px; font-weight: 650; }
 .gallery-topbar nav { display: flex; gap: 7px; }
-.gallery-topbar nav a { padding: 8px 11px; border-radius: 8px; color: #475569; text-decoration: none; font-size: 13px; }
-.gallery-topbar nav .primary-link { color: #fff; background: #0f172a; }
+.gallery-topbar nav a { height: 36px; display: flex; align-items: center; gap: 7px; padding: 0 10px; border-radius: 8px; color: #3f3b49; text-decoration: none; font-size: 12px; font-weight: 550; }
+.gallery-topbar nav a:hover { color: #e00048; background: #fff1f5; }
+.gallery-topbar nav svg { width: 16px; height: 16px; fill: currentColor; }
+.gallery-topbar nav .primary-link { color: #3f3b49; background: transparent; }
 .gallery-shell { width: min(1380px, calc(100% - 32px)); margin: 0 auto; padding: 52px 0 72px; }
 .gallery-intro { display: flex; align-items: end; justify-content: space-between; gap: 40px; margin-bottom: 30px; }
 .gallery-intro > div > p { margin: 0 0 8px; color: #2563eb; font-size: 11px; font-weight: 800; letter-spacing: .14em; }
@@ -27,4 +31,9 @@ h1 { margin: 0; font-size: clamp(34px,5vw,54px); letter-spacing: -.05em; }
   .gallery-card, .gallery-card.wide { grid-column: span 12; }
   .gallery-card { grid-template-rows: auto minmax(300px,1fr); }
   .card-canvas { min-height: 300px; padding: 14px; }
+}
+@media (max-width: 620px) {
+  .gallery-topbar { height: 62px; padding-inline: 14px; }
+  .gallery-brand strong { font-size: 13px; }
+  .gallery-topbar nav a { width: 34px; padding: 0; justify-content: center; font-size: 0; }
 }

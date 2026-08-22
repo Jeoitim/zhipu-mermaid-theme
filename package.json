@@ -29,6 +29,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@fontsource-variable/recursive": "5.2.8",
     "canvg": "^4.0.3",
     "hammerjs": "2.0.8",
     "mermaid": "11.16.1",
