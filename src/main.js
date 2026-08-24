@@ -174,65 +174,6 @@ const presets = {
     B --> C`,
 };
 
-function configureMonaco(monaco) {
-monaco.languages.register({ id: "mermaid" });
-monaco.languages.setMonarchTokensProvider("mermaid", {
-  tokenizer: {
-    root: [
-      [/^\s*(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram(?:-v2)?|erDiagram|journey|gantt|pie|timeline|mindmap|quadrantChart|xychart-beta|requirementDiagram|gitGraph|kanban|block-beta)\b/, "keyword.diagram"],
-      [/^\s*(title|section|dateFormat|axisFormat|excludes|todayMarker)\b/, "keyword"],
-      [/\b(subgraph|end|participant|actor|as|loop|alt|else|opt|par|and|rect|note|over|left of|right of)\b/, "keyword.control"],
-      [/%%.*$/, "comment"],
-      [/[A-Za-z_][\w-]*(?=\s*[\[{(])/, "type.identifier"],
-      [/(-->|---|-.->|==>|--x|--o|<-->|:)/, "operator"],
-      [/\b(done|active|crit|milestone)\b/, "constant"],
-      [/\d{4}-\d{2}-\d{2}|\b\d+(?:\.\d+)?(?:d|h|m|s|%)?\b/, "number"],
-      [/"[^"\\]*(?:\\.[^"\\]*)*"/, "string"],
-    ],
-  },
-});
-monaco.editor.defineTheme("mermaid-live", {
-  base: "vs",
-  inherit: true,
-  rules: [
-    { token: "keyword.diagram", foreground: "A3156B", fontStyle: "bold" },
-    { token: "keyword", foreground: "7C3AED" },
-    { token: "keyword.control", foreground: "0066B8" },
-    { token: "type.identifier", foreground: "16825D" },
-    { token: "operator", foreground: "C24170" },
-    { token: "constant", foreground: "9A6700" },
-  ],
-  colors: {
-    "editor.background": "#FFFFFF",
-    "editorGutter.background": "#FFFFFF",
-    "editorLineNumber.foreground": "#A0A7B4",
-    "editorLineNumber.activeForeground": "#4B5563",
-    "editor.selectionBackground": "#FBCFE8",
-    "editor.lineHighlightBackground": "#F8FAFC",
-  },
-});
-monaco.editor.defineTheme("mermaid-live-dark", {
-  base: "vs-dark",
-  inherit: true,
-  rules: [
-    { token: "keyword.diagram", foreground: "FF86AA", fontStyle: "bold" },
-    { token: "keyword", foreground: "C4B5FD" },
-    { token: "keyword.control", foreground: "7DD3FC" },
-    { token: "type.identifier", foreground: "86EFAC" },
-    { token: "operator", foreground: "FDA4AF" },
-    { token: "constant", foreground: "FDE68A" },
-  ],
-  colors: {
-    "editor.background": "#0F1117",
-    "editorGutter.background": "#0F1117",
-    "editorLineNumber.foreground": "#596273",
-    "editorLineNumber.activeForeground": "#D4D8E0",
-    "editor.selectionBackground": "#7C234366",
-    "editor.lineHighlightBackground": "#171A22",
-  },
-});
-}
-
 function encodeSource(value) {
   const bytes = new TextEncoder().encode(value);
   let binary = "";
@@ -256,52 +197,68 @@ let currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : 
 const sourceEditor = $("#source-editor");
 const fallbackEditor = $("#source-fallback");
 if (!fallbackEditor.value) fallbackEditor.value = initialSource;
-let monaco;
 let editor;
 
 async function enhanceEditor() {
-  const [monacoApi, workerModule] = await Promise.all([
-    import("monaco-editor/esm/vs/editor/editor.api"),
-    import("monaco-editor/esm/vs/editor/editor.worker?worker"),
+  const [{ EditorState }, viewApi, commandsApi] = await Promise.all([
+    import("@codemirror/state"),
+    import("@codemirror/view"),
+    import("@codemirror/commands"),
   ]);
-  monaco = monacoApi;
-  self.MonacoEnvironment = { getWorker: () => new workerModule.default() };
-  configureMonaco(monaco);
-  editor = monaco.editor.create(sourceEditor, {
-    value: fallbackEditor.value,
-    language: "mermaid",
-    theme: currentTheme === "dark" ? "mermaid-live-dark" : "mermaid-live",
-    automaticLayout: true,
-    minimap: { enabled: false },
-    fontFamily: '"Cascadia Code", "SFMono-Regular", Consolas, monospace',
-    fontSize: 13.5,
-    lineHeight: 23,
-    lineNumbersMinChars: 3,
-    padding: { top: 16, bottom: 32 },
-    renderLineHighlight: "line",
-    scrollBeyondLastLine: false,
-    smoothScrolling: true,
-    contextmenu: false,
-    wordWrap: "off",
-    tabSize: 2,
-  });
-  editor.onDidChangeModelContent(handleSourceChange);
+  const { Decoration, EditorView, ViewPlugin, highlightActiveLine, keymap, lineNumbers } = viewApi;
+  const { defaultKeymap, history, historyKeymap } = commandsApi;
+  const tokenPattern = /%%.*$|"(?:\\.|[^"\\])*"|\b(?:flowchart|graph|sequenceDiagram|classDiagram|stateDiagram(?:-v2)?|erDiagram|journey|gantt|pie|timeline|mindmap|quadrantChart|xychart-beta|requirementDiagram|gitGraph|kanban|block-beta)\b|\b(?:title|section|dateFormat|axisFormat|excludes|todayMarker)\b|\b(?:subgraph|end|participant|actor|as|loop|alt|else|opt|par|and|rect|note|over)\b|\b(?:done|active|crit|milestone)\b|(?:<-->|-->|---|-.->|==>|--x|--o|:)|\d{4}-\d{2}-\d{2}|\b\d+(?:\.\d+)?(?:d|h|m|s|%)?\b|[A-Za-z_][\w-]*(?=\s*[\[{(])/gm;
+  const diagramWords = /^(?:flowchart|graph|sequenceDiagram|classDiagram|stateDiagram(?:-v2)?|erDiagram|journey|gantt|pie|timeline|mindmap|quadrantChart|xychart-beta|requirementDiagram|gitGraph|kanban|block-beta)$/;
+  const keywordWords = /^(?:title|section|dateFormat|axisFormat|excludes|todayMarker)$/;
+  const controlWords = /^(?:subgraph|end|participant|actor|as|loop|alt|else|opt|par|and|rect|note|over)$/;
+  const constantWords = /^(?:done|active|crit|milestone)$/;
+  function tokenClass(token) {
+    if (token.startsWith("%%")) return "cm-mermaid-comment";
+    if (token.startsWith('"')) return "cm-mermaid-string";
+    if (diagramWords.test(token)) return "cm-mermaid-diagram";
+    if (keywordWords.test(token)) return "cm-mermaid-keyword";
+    if (controlWords.test(token)) return "cm-mermaid-control";
+    if (constantWords.test(token)) return "cm-mermaid-constant";
+    if (/^\d/.test(token)) return "cm-mermaid-number";
+    if (/^[A-Za-z_]/.test(token)) return "cm-mermaid-identifier";
+    return "cm-mermaid-operator";
+  }
+  function buildDecorations(view) {
+    const ranges = [];
+    const text = view.state.doc.toString();
+    tokenPattern.lastIndex = 0;
+    for (let match; (match = tokenPattern.exec(text));) {
+      ranges.push(Decoration.mark({ class: tokenClass(match[0]) }).range(match.index, match.index + match[0].length));
+    }
+    return Decoration.set(ranges, true);
+  }
+  const mermaidHighlight = ViewPlugin.fromClass(class {
+    constructor(view) { this.decorations = buildDecorations(view); }
+    update(update) { if (update.docChanged) this.decorations = buildDecorations(update.view); }
+  }, { decorations: (plugin) => plugin.decorations });
   sourceEditor.classList.add("is-enhanced");
+  const view = new EditorView({
+    parent: sourceEditor,
+    state: EditorState.create({
+      doc: fallbackEditor.value,
+      extensions: [
+        lineNumbers(),
+        highlightActiveLine(),
+        history(),
+        keymap.of([...defaultKeymap, ...historyKeymap]),
+        mermaidHighlight,
+        EditorView.contentAttributes.of({ "aria-label": "Mermaid 源码编辑器", spellcheck: "false", autocapitalize: "off" }),
+        EditorView.updateListener.of((update) => { if (update.docChanged) handleSourceChange(); }),
+      ],
+    }),
+  });
+  editor = {
+    getValue: () => view.state.doc.toString(),
+    setValue(value) { view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: value } }); },
+    layout: () => view.requestMeasure(),
+  };
   requestAnimationFrame(() => editor?.layout());
 }
-
-function useNativeMobileEditor() {
-  return matchMedia("(max-width: 900px) and (pointer: coarse)").matches;
-}
-
-sourceEditor.addEventListener("contextmenu", (event) => {
-  if (!editor) return;
-  const target = editor.getTargetAtClientPoint(event.clientX, event.clientY);
-  const position = target?.position;
-  const selection = editor.getSelection();
-  if (position && selection && !selection.containsPosition(position)) editor.setPosition(position);
-  editor.focus();
-}, true);
 
 layout.value = localStorage.getItem("zhipu-mermaid-layout") || "auto";
 const savedRenderWidth = Number.parseInt(localStorage.getItem("mermaid-render-width"), 10);
@@ -551,7 +508,6 @@ themeToggle.addEventListener("click", () => {
   currentTheme = currentTheme === "dark" ? "light" : "dark";
   document.documentElement.dataset.theme = currentTheme;
   localStorage.setItem("mermaid-editor-theme", currentTheme);
-  monaco?.editor.setTheme(currentTheme === "dark" ? "mermaid-live-dark" : "mermaid-live");
   renderDiagram();
 });
 $("#zoom-in").addEventListener("click", () => panZoom?.zoomIn());
@@ -648,6 +604,4 @@ try {
 } finally {
   requestAnimationFrame(() => document.documentElement.classList.add("app-ready"));
 }
-if (!useNativeMobileEditor()) {
-  enhanceEditor().catch((error) => console.error("Monaco editor failed to load", error));
-}
+enhanceEditor().catch((error) => console.error("Monaco editor failed to load", error));
