@@ -281,6 +281,7 @@ async function enhanceEditor() {
     renderLineHighlight: "line",
     scrollBeyondLastLine: false,
     smoothScrolling: true,
+    contextmenu: false,
     wordWrap: "off",
     tabSize: 2,
   });
@@ -288,6 +289,19 @@ async function enhanceEditor() {
   sourceEditor.classList.add("is-enhanced");
   requestAnimationFrame(() => editor?.layout());
 }
+
+function useNativeMobileEditor() {
+  return matchMedia("(max-width: 900px) and (pointer: coarse)").matches;
+}
+
+sourceEditor.addEventListener("contextmenu", (event) => {
+  if (!editor) return;
+  const target = editor.getTargetAtClientPoint(event.clientX, event.clientY);
+  const position = target?.position;
+  const selection = editor.getSelection();
+  if (position && selection && !selection.containsPosition(position)) editor.setPosition(position);
+  editor.focus();
+}, true);
 
 layout.value = localStorage.getItem("zhipu-mermaid-layout") || "auto";
 const savedRenderWidth = Number.parseInt(localStorage.getItem("mermaid-render-width"), 10);
@@ -634,4 +648,6 @@ try {
 } finally {
   requestAnimationFrame(() => document.documentElement.classList.add("app-ready"));
 }
-enhanceEditor().catch((error) => console.error("Monaco editor failed to load", error));
+if (!useNativeMobileEditor()) {
+  enhanceEditor().catch((error) => console.error("Monaco editor failed to load", error));
+}
