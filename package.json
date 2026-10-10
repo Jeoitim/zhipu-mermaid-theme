@@ -19,7 +19,7 @@
     "build:lib": "vite build --config vite.lib.config.js",
     "build:demo": "vite build --outDir dist-demo",
     "preview": "node scripts/vite-random-port.mjs preview --outDir dist-demo",
-    "check": "node --check src/zhipu-mermaid-theme.js && node --check src/main.js && node --check src/gallery.js && node --check src/gallery-i18n.js && node --check scripts/vite-random-port.mjs"
+    "check": "node --check src/zhipu-mermaid-theme.js && node --check src/main.js && node --check src/gallery.js && node --check src/gallery-i18n.js && node --check src/language.js && node --check scripts/vite-random-port.mjs"
   },
   "keywords": [
     "mermaid",

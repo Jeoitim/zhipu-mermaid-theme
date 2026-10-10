@@ -1,6 +1,7 @@
 import mermaid from "mermaid";
 import { initializeZhipuMermaid, renderZhipuMermaid } from "./zhipu-mermaid-theme.js";
 import { galleryMessages, localizeExample } from "./gallery-i18n.js";
+import { getLanguage, initializeLanguageButton, setLanguage, updateLanguageButton } from "./language.js";
 
 initializeZhipuMermaid(mermaid);
 
@@ -85,10 +86,8 @@ function encodeSource(value) {
 const gallery = document.querySelector("#gallery");
 const themeToggle = document.querySelector("#gallery-theme-toggle");
 const languageToggle = document.querySelector("#gallery-language-toggle");
-const requestedLanguage = new URL(location.href).searchParams.get("lang");
-const savedLanguage = localStorage.getItem("mermaid-language");
-let language = [requestedLanguage, savedLanguage].find((value) => value === "en" || value === "zh")
-  || (navigator.language.toLowerCase().startsWith("zh") ? "zh" : "en");
+let language = getLanguage();
+initializeLanguageButton(languageToggle);
 let currentTheme = document.documentElement.dataset.theme === "dark" ? "dark" : "light";
 let renderGeneration = 0;
 
@@ -103,11 +102,12 @@ function applyLanguage() {
   const editorLink = document.querySelector(".primary-link");
   editorLink.lastChild.textContent = messages.editor;
   editorLink.setAttribute("aria-label", messages.editor);
+  editorLink.href = `../?lang=${language}`;
+  document.querySelector(".gallery-brand").href = `../?lang=${language}`;
   themeToggle.title = messages.theme;
   themeToggle.setAttribute("aria-label", messages.theme);
   gallery.setAttribute("aria-label", messages.gallery);
-  languageToggle.textContent = language === "zh" ? "EN" : "中文";
-  languageToggle.setAttribute("aria-label", language === "zh" ? "Switch to English" : "切换为中文");
+  updateLanguageButton(languageToggle);
 }
 
 async function renderGallery() {
@@ -122,7 +122,7 @@ async function renderGallery() {
     card.innerHTML = `<div class="card-head"><strong>${example.title}</strong><button type="button">${messages.open}</button></div><div class="card-canvas" id="example-${index}"></div>`;
     gallery.appendChild(card);
     card.querySelector("button").addEventListener("click", () => {
-      location.href = `../#code=${encodeSource(example.source)}`;
+      location.href = `../?lang=${language}#code=${encodeSource(example.source)}`;
     });
     const container = card.querySelector(".card-canvas");
     try {
@@ -146,10 +146,7 @@ themeToggle.addEventListener("click", async () => {
 
 languageToggle.addEventListener("click", async () => {
   language = language === "zh" ? "en" : "zh";
-  localStorage.setItem("mermaid-language", language);
-  const url = new URL(location.href);
-  url.searchParams.set("lang", language);
-  history.replaceState(null, "", url);
+  setLanguage(language);
   applyLanguage();
   await renderGallery();
 });

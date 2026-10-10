@@ -1,5 +1,6 @@
 import Hammer from "hammerjs";
 import svgPanZoom from "svg-pan-zoom";
+import { applyEditorLanguage, getLanguage, initializeLanguageButton, setLanguage, t } from "./language.js";
 import { initializeZhipuMermaid, renderZhipuMermaid } from "./zhipu-mermaid-theme.js";
 
 let mermaid;
@@ -36,6 +37,22 @@ const sourcePane = $("#source-pane");
 const previewPane = $("#preview-pane");
 const mobileViewButtons = [...document.querySelectorAll("[data-mobile-view-target]")];
 const mobileViewport = matchMedia("(max-width: 900px)");
+const languageToggle = $("#language-toggle");
+document.addEventListener("pointerdown", (event) => {
+  if (actionsMenu.open && !actionsMenu.contains(event.target)) actionsMenu.open = false;
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && actionsMenu.open) {
+    actionsMenu.open = false;
+    actionsMenu.querySelector("summary").focus();
+  }
+});
+initializeLanguageButton(languageToggle);
+applyEditorLanguage();
+languageToggle.addEventListener("click", () => {
+  setLanguage(getLanguage() === "zh" ? "en" : "zh");
+  applyEditorLanguage();
+});
 
 const presets = {
   timeline: `timeline
@@ -247,7 +264,7 @@ async function enhanceEditor() {
         history(),
         keymap.of([...defaultKeymap, ...historyKeymap]),
         mermaidHighlight,
-        EditorView.contentAttributes.of({ "aria-label": "Mermaid 源码编辑器", spellcheck: "false", autocapitalize: "off" }),
+        EditorView.contentAttributes.of({ "aria-label": t("Mermaid 源码编辑器"), spellcheck: "false", autocapitalize: "off" }),
         EditorView.updateListener.of((update) => { if (update.docChanged) handleSourceChange(); }),
       ],
     }),
@@ -317,7 +334,7 @@ function setRenderState(state) {
 
 function notify(message) {
   clearTimeout(toastTimer);
-  toast.textContent = message;
+  toast.textContent = t(message);
   toast.classList.add("show");
   toastTimer = setTimeout(() => toast.classList.remove("show"), 1600);
 }
@@ -604,4 +621,4 @@ try {
 } finally {
   requestAnimationFrame(() => document.documentElement.classList.add("app-ready"));
 }
-enhanceEditor().catch((error) => console.error("Monaco editor failed to load", error));
+enhanceEditor().catch((error) => console.error("Code editor failed to load", error));
