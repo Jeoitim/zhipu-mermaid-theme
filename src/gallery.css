@@ -5,6 +5,10 @@ body { margin: 0; }
 .gallery-brand { display: flex; align-items: center; gap: 9px; color: #0f172a; text-decoration: none; }
 .gallery-brand img { width: 26px; height: 26px; border-radius: 6px; }
 .gallery-brand strong { color: #e00048; font-size: 15px; font-weight: 650; }
+.gallery-brand { min-width: 0; }
+.gallery-brand strong { min-width: 0; }
+.gallery-topbar nav { flex-shrink: 0; }
+#gallery-language-toggle { justify-content: center; min-width: 36px; padding: 0 6px; }
 .gallery-topbar nav { display: flex; gap: 7px; }
 .gallery-topbar nav a, .gallery-topbar nav button { height: 36px; display: flex; align-items: center; gap: 7px; padding: 0 10px; border: 0; border-radius: 8px; color: #3f3b49; background: transparent; text-decoration: none; font-size: 12px; font-weight: 550; cursor: pointer; }
 .gallery-topbar nav a:hover, .gallery-topbar nav button:hover { color: #e00048; background: #fff1f5; }

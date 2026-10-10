@@ -1,22 +1,31 @@
-# Mermaid Theme & Live Editor
-A responsive Mermaid theme toolkit and browser editor with fixed Timeline layouts.
+# Zhipu Qingyan Mermaid Themes — Clean-room Reconstruction
+An independent Mermaid theme reconstruction based on the visible diagram styles in **Zhipu Qingyan's web client and mobile app**, with a live browser editor and responsive Timeline fixes.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Deploy demo to GitHub Pages](https://github.com/Jeoitim/zhipu-mermaid-theme/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/Jeoitim/zhipu-mermaid-theme/actions/workflows/deploy-pages.yml)
 
-[中文](README.zh.md) · [Open editor](https://jeoitim.github.io/zhipu-mermaid-theme/) · [Browse gallery](https://jeoitim.github.io/zhipu-mermaid-theme/demo/)
+[中文](README.zh.md) · [Open editor](https://jeoitim.github.io/zhipu-mermaid-theme/) · [Browse gallery in English](https://jeoitim.github.io/zhipu-mermaid-theme/demo/?lang=en)
 
 ## Overview
-This project combines an independent clean-room Mermaid presentation layer with a Mermaid Live Editor-inspired browser workspace. It fixes vertical Timeline section overlap, wraps long desktop labels, provides coordinated light and dark diagram palettes, and keeps editing, previewing, sharing, and exporting entirely in the browser.
+The theme library is the core of this project. Its visual references are Zhipu Qingyan (ChatGLM): the **web client's horizontal Timeline** and the **mobile app's vertical Timeline**, together with coordinated colors for common Mermaid diagrams. The editor and gallery let you explore and reuse these themes.
+
+This is a **clean-room reconstruction**, not an official theme package or a claim of pixel-perfect parity. The rendering and layout code is independently implemented from observable output; it does not reuse Zhipu's proprietary renderer. Automatic text wrapping, overlap fixes, and coordinated dark palettes are project additions.
+
+| Reference / component | What this project provides |
+| --- | --- |
+| Qingyan web client | Desktop horizontal Timeline styling and coordinated diagram colors |
+| Qingyan mobile app | Independently implemented vertical Timeline cards and section markers |
+| Theme library | Reusable Mermaid configuration and responsive rendering helpers |
+| Editor & `/demo/` gallery | Browser editing, zooming, exports, and Chinese/English gallery examples |
 
 ## Key Capabilities
 - Responsive Timeline renderer: automatic mobile vertical layout without the TD directive and wrapped desktop labels
-- Monaco editor with first-line diagram detection and 16 built-in Mermaid examples
+- CodeMirror 6 editor with syntax highlighting, native browser context menus, first-line diagram detection, and 16 built-in Mermaid examples
 - SVG pan and zoom with wheel zooming, drag panning, fit-to-canvas, fullscreen preview, and resizable panes
 - Timeline-only render-width popover with a 480px default and persistent user preference
 - Coordinated light and dark UI/diagram themes, including dark Timeline, Flowchart, Sequence, Gantt, Pie, GitGraph, Mindmap, Quadrant, and XY Chart colors
 - Local SVG, PNG, and Mermaid source export, SVG/source copy, and source-encoded share links
-- Dedicated `/demo/` theme gallery and automated GitHub Pages deployment
+- Chinese/English `/demo/` theme gallery (including translated diagram labels) and automated GitHub Pages deployment
 - Random free ports for local development and preview to avoid project collisions
 
 ## Supported Diagrams
@@ -25,8 +34,9 @@ Timeline, Flowchart, Sequence, Class, State, ER, Gantt, Pie, Journey, Git Graph,
 
 ## System Components
 - Theme configuration and responsive render helpers (`src/zhipu-mermaid-theme.js`)
-- Monaco editor, pan/zoom canvas, theme switching, detection, sharing, and exports (`src/main.js`)
+- CodeMirror editor, pan/zoom canvas, theme switching, detection, sharing, and exports (`src/main.js`)
 - Theme gallery (`demo/index.html`, `src/gallery.js`, and `src/gallery.css`)
+- Gallery translations and English example labels (`src/gallery-i18n.js`)
 - GitHub Pages workflow (`.github/workflows/deploy-pages.yml`)
 
 ## Quick Start
@@ -36,6 +46,8 @@ pnpm dev
 ```
 
 The development server selects a random free local port. To create the library and GitHub Pages bundles, run `pnpm build`.
+
+The gallery detects your browser language and remembers manual EN/中文 selections. Use `/demo/?lang=en` or `/demo/?lang=zh` to open a specific language; an explicit URL choice takes precedence over the saved preference. Opening an example transfers the currently displayed language's diagram source into the editor.
 
 ## Library Usage
 
@@ -68,6 +80,7 @@ zhipu-mermaid-theme/
 ├── src/
 │   ├── main.js
 │   ├── gallery.js
+│   ├── gallery-i18n.js
 │   ├── gallery.css
 │   ├── style.css
 │   └── zhipu-mermaid-theme.js
